@@ -12,17 +12,24 @@ class DatabaseConnection {
     }
 
     try {
+      // Updated MongoDB connection options for newer versions
       const options = {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
+        // Remove deprecated options
+        // bufferMaxEntries: 0, // This is deprecated
+        // bufferCommands: false, // This is deprecated
+        // useNewUrlParser: true, // This is deprecated in newer versions
+        // useUnifiedTopology: true, // This is deprecated in newer versions
+        
+        // Keep only supported options
         maxPoolSize: 10,
         serverSelectionTimeoutMS: 5000,
         socketTimeoutMS: 45000,
-        bufferMaxEntries: 0,
-        bufferCommands: false,
       };
 
-      await mongoose.connect(process.env.MONGODB_URI, options);
+      const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/ssm_technologies';
+      console.log(`🔗 Connecting to MongoDB: ${mongoUri}`);
+      
+      await mongoose.connect(mongoUri, options);
       
       this.isConnected = true;
       console.log('✅ Connected to MongoDB successfully');

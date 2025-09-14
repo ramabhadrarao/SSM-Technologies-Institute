@@ -1,88 +1,232 @@
+// src/types/index.ts
 export interface User {
-  id: string;
+  _id: string;
   email: string;
   role: 'admin' | 'student' | 'instructor';
-  first_name?: string;
-  last_name?: string;
+  firstName?: string;
+  lastName?: string;
   phone?: string;
   whatsapp?: string;
-  created_at: string;
+  profileImageUrl?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Course {
-  id: string;
+  _id: string;
   name: string;
   description: string;
-  image_url?: string;
-  video_url?: string;
+  imageUrl?: string;
+  videoUrl?: string;
   fees: number;
   duration: string;
   structure: string[];
   subjects: string[];
-  created_at: string;
-  updated_at: string;
+  instructor?: string;
+  isActive: boolean;
+  enrollmentCount: number;
+  rating: number;
+  reviews: Review[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Review {
+  student: string;
+  rating: number;
+  comment?: string;
+  createdAt: string;
 }
 
 export interface Subject {
-  id: string;
+  _id: string;
   name: string;
   description: string;
-  image_url?: string;
-  course_id?: string;
-  created_at: string;
+  imageUrl?: string;
+  course?: string;
+  syllabus: {
+    topic: string;
+    duration?: string;
+    description?: string;
+  }[];
+  materials: {
+    title: string;
+    type: 'pdf' | 'video' | 'link' | 'document';
+    url: string;
+    uploadedAt: string;
+  }[];
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Instructor {
-  id: string;
-  user_id: string;
+  _id: string;
+  user: string;
   bio: string;
   designation: string;
-  image_url?: string;
-  resume_url?: string;
-  certificates: string[];
+  imageUrl?: string;
+  resumeUrl?: string;
+  certificates: {
+    name: string;
+    url: string;
+    issuedBy: string;
+    issuedDate: string;
+    uploadedAt: string;
+  }[];
   skills: string[];
   experience: number;
-  created_at: string;
+  specializations: string[];
+  education: {
+    degree: string;
+    institution: string;
+    year: number;
+    grade?: string;
+  }[];
+  socialLinks: {
+    linkedin?: string;
+    github?: string;
+    website?: string;
+    twitter?: string;
+  };
+  rating: number;
+  totalStudents: number;
+  isApproved: boolean;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Student {
-  id: string;
-  user_id: string;
-  enrolled_courses: string[];
-  created_at: string;
+  _id: string;
+  user: string;
+  enrolledCourses: {
+    course: string;
+    enrolledAt: string;
+    progress: number;
+    completedSubjects: string[];
+    status: 'active' | 'completed' | 'suspended' | 'dropped';
+  }[];
+  batches: string[];
+  attendance: {
+    batch: string;
+    date: string;
+    status: 'present' | 'absent' | 'late';
+    classId: string;
+  }[];
+  assignments: {
+    title: string;
+    subject: string;
+    submittedAt?: string;
+    fileUrl?: string;
+    grade?: number;
+    feedback?: string;
+  }[];
+  performance: {
+    overallGrade: number;
+    attendancePercentage: number;
+    assignmentCompletion: number;
+  };
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Batch {
-  id: string;
+  _id: string;
   name: string;
-  course_id: string;
-  instructor_id: string;
+  course: string;
+  instructor: string;
   schedule: {
-    date: string;
-    time: string;
-    meeting_link?: string;
+    dayOfWeek: number;
+    startTime: string;
+    endTime: string;
+    subject?: string;
   }[];
-  max_students: number;
-  enrolled_students: string[];
-  created_at: string;
+  classes: {
+    date: string;
+    startTime: string;
+    endTime: string;
+    subject?: string;
+    meetingLink?: string;
+    recordingUrl?: string;
+    status: 'scheduled' | 'ongoing' | 'completed' | 'cancelled';
+    attendance: {
+      student: string;
+      status: 'present' | 'absent' | 'late';
+      joinTime?: string;
+      leaveTime?: string;
+    }[];
+  }[];
+  maxStudents: number;
+  enrolledStudents: {
+    student: string;
+    enrolledAt: string;
+    status: 'active' | 'inactive' | 'completed';
+  }[];
+  startDate: string;
+  endDate: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Slider {
-  id: string;
+  _id: string;
   title: string;
   description: string;
-  image_url: string;
+  imageUrl: string;
+  buttonText?: string;
+  buttonLink?: string;
   order: number;
-  active: boolean;
-  created_at: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface AboutMember {
-  id: string;
+  _id: string;
   name: string;
   designation: string;
   bio: string;
-  image_url?: string;
+  imageUrl?: string;
+  socialLinks: {
+    linkedin?: string;
+    twitter?: string;
+    facebook?: string;
+    instagram?: string;
+  };
   order: number;
-  created_at: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Skill {
+  _id: string;
+  name: string;
+  description: string;
+  category: 'programming' | 'design' | 'marketing' | 'business' | 'data-science' | 'other';
+  level: 'beginner' | 'intermediate' | 'advanced';
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ContactMessage {
+  _id: string;
+  name: string;
+  email: string;
+  phone: string;
+  subject: string;
+  message: string;
+  status: 'new' | 'read' | 'replied' | 'closed';
+  reply?: {
+    message: string;
+    repliedBy: string;
+    repliedAt: string;
+  };
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  createdAt: string;
+  updatedAt: string;
 }

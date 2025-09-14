@@ -4,9 +4,21 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './contexts/AuthContext';
 import Header from './components/Layout/Header';
 import Footer from './components/Layout/Footer';
+
+// Public Pages
 import Home from './pages/Home';
+import Courses from './pages/Courses';
+import CourseDetail from './pages/CourseDetail';
+import Subjects from './pages/Subjects';
+import About from './pages/About';
+import Contact from './pages/Contact';
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
+
+// Dashboard Pages
+import AdminDashboard from './pages/Admin/Dashboard';
+import StudentDashboard from './pages/Student/Dashboard';
+import InstructorDashboard from './pages/Instructor/Dashboard';
 
 function App() {
   return (
@@ -16,9 +28,20 @@ function App() {
           <Header />
           <main className="flex-1">
             <Routes>
+              {/* Public Routes */}
               <Route path="/" element={<Home />} />
+              <Route path="/courses" element={<Courses />} />
+              <Route path="/courses/:id" element={<CourseDetail />} />
+              <Route path="/subjects" element={<Subjects />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              
+              {/* Dashboard Routes */}
+              <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/student/dashboard" element={<StudentDashboard />} />
+              <Route path="/instructor/dashboard" element={<InstructorDashboard />} />
             </Routes>
           </main>
           <Footer />

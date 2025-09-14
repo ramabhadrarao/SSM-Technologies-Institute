@@ -1,7 +1,8 @@
+// src/components/Home/CoursesSection.tsx
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { BookOpen, Clock, Users, ArrowRight } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { apiClient } from '../../lib/api';
 import { Course } from '../../types';
 import Card from '../UI/Card';
 
@@ -15,14 +16,8 @@ const CoursesSection: React.FC = () => {
 
   const fetchCourses = async () => {
     try {
-      const { data, error } = await supabase
-        .from('courses')
-        .select('*')
-        .limit(6)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setCourses(data || []);
+      const response = await apiClient.getCourses({ limit: 6 });
+      setCourses(response.courses || []);
     } catch (error) {
       console.error('Error fetching courses:', error);
     } finally {
@@ -70,11 +65,11 @@ const CoursesSection: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {courses.map((course) => (
-            <Card key={course.id} hover className="overflow-hidden">
+            <Card key={course._id} hover className="overflow-hidden">
               <div className="relative h-48 bg-gradient-to-br from-blue-500 to-cyan-500">
-                {course.image_url ? (
+                {course.imageUrl ? (
                   <img
-                    src={course.image_url}
+                    src={course.imageUrl}
                     alt={course.name}
                     className="w-full h-full object-cover"
                   />
@@ -99,13 +94,13 @@ const CoursesSection: React.FC = () => {
                   </div>
                   <div className="flex items-center">
                     <Users className="w-4 h-4 mr-1" />
-                    {course.subjects.length} Subjects
+                    {course.subjects?.length || 0} Subjects
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <Link
-                    to={`/courses/${course.id}`}
+                    to={`/courses/${course._id}`}
                     className="text-blue-600 hover:text-blue-700 font-medium flex items-center transition-colors"
                   >
                     Learn More
@@ -123,15 +118,23 @@ const CoursesSection: React.FC = () => {
           ))}
         </div>
 
-        <div className="text-center mt-12">
-          <Link
-            to="/courses"
-            className="inline-flex items-center bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-cyan-700 transition-all duration-200"
-          >
-            View All Courses
-            <ArrowRight className="w-5 h-5 ml-2" />
-          </Link>
-        </div>
+        {courses.length === 0 ? (
+          <div className="text-center py-12">
+            <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No Courses Available</h3>
+            <p className="text-gray-600">Check back later for new courses.</p>
+          </div>
+        ) : (
+          <div className="text-center mt-12">
+            <Link
+              to="/courses"
+              className="inline-flex items-center bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-cyan-700 transition-all duration-200"
+            >
+              View All Courses
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Link>
+          </div>
+        )}
       </div>
     </section>
   );

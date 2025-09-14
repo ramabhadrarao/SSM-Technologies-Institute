@@ -9,6 +9,8 @@ const { securityHeaders, sanitizeInput, requestLogger, errorHandler } = require(
 // Import routes
 const authRoutes = require('./routes/auth');
 const courseRoutes = require('./routes/courses');
+const subjectRoutes = require('./routes/subjects');
+const dashboardRoutes = require('./routes/dashboard');
 
 const app = express();
 
@@ -54,6 +56,8 @@ app.get('/health', (req, res) => {
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/courses', courseRoutes);
+app.use('/api/subjects', subjectRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
@@ -85,6 +89,15 @@ app.listen(PORT, () => {
   console.log(`🚀 SSM Technologies API server running on port ${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV}`);
   console.log(`🌐 CORS Origin: ${process.env.CORS_ORIGIN}`);
+  console.log(`📚 Available routes:`);
+  console.log(`   GET  /health - Health check`);
+  console.log(`   POST /api/auth/register - User registration`);
+  console.log(`   POST /api/auth/login - User login`);
+  console.log(`   GET  /api/courses - Get all courses`);
+  console.log(`   GET  /api/subjects - Get all subjects`);
+  console.log(`   GET  /api/dashboard/admin - Admin dashboard`);
+  console.log(`   GET  /api/dashboard/student - Student dashboard`);
+  console.log(`   GET  /api/dashboard/instructor - Instructor dashboard`);
 });
 
 module.exports = app;

@@ -1,14 +1,21 @@
+// src/contexts/AuthContext.tsx
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User as SupabaseUser } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabase';
+import { apiClient } from '../lib/api';
 import { User } from '../types';
 
 interface AuthContextType {
   user: User | null;
-  supabaseUser: SupabaseUser | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<any>;
-  signUp: (email: string, password: string, userData: any) => Promise<any>;
+  signUp: (userData: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    phone: string;
+    whatsapp?: string;
+    role: 'student' | 'instructor';
+  }) => Promise<any>;
   signOut: () => Promise<void>;
 }
 
@@ -24,96 +31,70 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSupabaseUser(session?.user ?? null);
-      if (session?.user) {
-        fetchUserProfile(session.user.id);
-      } else {
-        setLoading(false);
-      }
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSupabaseUser(session?.user ?? null);
-        if (session?.user) {
-          await fetchUserProfile(session.user.id);
-        } else {
-          setUser(null);
-          setLoading(false);
-        }
-      }
-    );
-
-    return () => subscription.unsubscribe();
+    // Check if user is logged in on app start
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      fetchUserProfile();
+    } else {
+      setLoading(false);
+    }
   }, []);
 
-  const fetchUserProfile = async (userId: string) => {
+  const fetchUserProfile = async () => {
     try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) throw error;
-      setUser(data);
+      const profileData = await apiClient.getProfile();
+      setUser(profileData.user);
     } catch (error) {
       console.error('Error fetching user profile:', error);
+      // Token might be expired, clear it
+      apiClient.removeToken();
     } finally {
       setLoading(false);
     }
   };
 
   const signIn = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    return { data, error };
+    try {
+      const response = await apiClient.login(email, password);
+      setUser(response.user);
+      return { data: response, error: null };
+    } catch (error: any) {
+      return { data: null, error: { message: error.message } };
+    }
   };
 
-  const signUp = async (email: string, password: string, userData: any) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-
-    if (data.user && !error) {
-      // Create user profile
-      const { error: profileError } = await supabase
-        .from('users')
-        .insert([
-          {
-            id: data.user.id,
-            email,
-            ...userData,
-          },
-        ]);
-
-      if (profileError) {
-        console.error('Error creating user profile:', profileError);
-      }
+  const signUp = async (userData: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    phone: string;
+    whatsapp?: string;
+    role: 'student' | 'instructor';
+  }) => {
+    try {
+      const response = await apiClient.register(userData);
+      return { data: response, error: null };
+    } catch (error: any) {
+      return { data: null, error: { message: error.message } };
     }
-
-    return { data, error };
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setSupabaseUser(null);
+    try {
+      await apiClient.logout();
+    } catch (error) {
+      console.error('Error during logout:', error);
+    } finally {
+      setUser(null);
+    }
   };
 
   const value = {
     user,
-    supabaseUser,
     loading,
     signIn,
     signUp,
