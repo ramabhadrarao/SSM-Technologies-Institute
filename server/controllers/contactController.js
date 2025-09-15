@@ -117,7 +117,15 @@ const getContactMessage = async (req, res) => {
 // Create contact message (public endpoint)
 const createContactMessage = async (req, res) => {
   try {
-    const { name, email, phone, subject, message } = req.body;
+    const { name, email, phone, subject, message, captchaToken, formStartTime } = req.body;
+    
+    // Additional server-side validation
+    if (!captchaToken || !formStartTime) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid form submission'
+      });
+    }
 
     // Auto-assign priority based on keywords
     let priority = 'medium';
@@ -139,10 +147,20 @@ const createContactMessage = async (req, res) => {
       subject,
       message,
       priority,
-      status: 'new'
+      status: 'new',
+      metadata: {
+        ip: req.ip,
+        userAgent: req.get('User-Agent'),
+        fingerprint: req.fingerprint,
+        submissionTime: new Date(),
+        formFillTime: Date.now() - parseInt(formStartTime)
+      }
     });
 
     await contactMessage.save();
+    
+    // Log successful submission for monitoring
+    console.log(`✅ Contact message received from ${email} (IP: ${req.ip})`);
 
     res.status(201).json({
       success: true,

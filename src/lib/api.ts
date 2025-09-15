@@ -722,6 +722,12 @@ class ApiClient {
     phone: string;
     subject: string;
     message: string;
+    captchaToken: string;
+    formStartTime: string;
+    website?: string;
+    url?: string;
+    link?: string;
+    agreeToTerms?: boolean;
   }) {
     return this.request('/contact', {
       method: 'POST',

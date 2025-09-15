@@ -11,10 +11,13 @@ import {
   Facebook,
   Twitter,
   Instagram,
-  Linkedin
+  Linkedin,
+  Shield,
+  AlertTriangle
 } from 'lucide-react';
 import Button from '../components/UI/Button';
 import Card from '../components/UI/Card';
+import ReCaptcha, { ReCaptchaRef } from '../components/UI/ReCaptcha';
 import { apiClient } from '../lib/api';
 import toast from 'react-hot-toast';
 
@@ -24,10 +27,15 @@ interface ContactForm {
   phone: string;
   subject: string;
   message: string;
+  agreeToTerms: boolean;
 }
 
 const Contact: React.FC = () => {
   const [loading, setLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [formStartTime] = useState(Date.now());
+  const [showSecurityInfo, setShowSecurityInfo] = useState(false);
+  const recaptchaRef = React.useRef<ReCaptchaRef>(null);
 
   const {
     register,
@@ -37,16 +45,48 @@ const Contact: React.FC = () => {
   } = useForm<ContactForm>();
 
   const onSubmit = async (data: ContactForm) => {
+      recaptchaRef.current?.reset();
+    if (!captchaToken) {
+      toast.error('Please complete the CAPTCHA verification');
+      return;
+    }
+
     setLoading(true);
     try {
-      await apiClient.createContactMessage(data);
+      const messageData = {
+        ...data,
+        captchaToken,
+        formStartTime: formStartTime.toString(),
+        // Honeypot fields (empty for legitimate users)
+        website: '',
+        url: '',
+        link: ''
+      };
+      
+      await apiClient.createContactMessage(messageData);
       toast.success('Message sent successfully! We\'ll get back to you soon.');
       reset();
+      setCaptchaToken(null);
+      recaptchaRef.current?.reset();
     } catch (error) {
       toast.error('Failed to send message. Please try again.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCaptchaChange = (token: string | null) => {
+    setCaptchaToken(token);
+  };
+
+  const handleCaptchaExpire = () => {
+    setCaptchaToken(null);
+    toast.error('CAPTCHA expired. Please verify again.');
+  };
+
+  const handleCaptchaError = () => {
+    setCaptchaToken(null);
+    toast.error('CAPTCHA error. Please try again.');
   };
 
   const contactInfo = [
@@ -149,6 +189,35 @@ const Contact: React.FC = () => {
           {/* Contact Form */}
           <div className="lg:col-span-2">
             <Card className="p-8">
+              {/* Security Notice */}
+              <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-start space-x-3">
+                  <Shield className="w-5 h-5 text-blue-600 mt-0.5" />
+                  <div>
+                    <h4 className="text-sm font-medium text-blue-900">Secure Contact Form</h4>
+                    <p className="text-sm text-blue-700 mt-1">
+                      This form is protected by advanced security measures including CAPTCHA verification and rate limiting.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setShowSecurityInfo(!showSecurityInfo)}
+                      className="text-xs text-blue-600 hover:text-blue-800 mt-2"
+                    >
+                      {showSecurityInfo ? 'Hide' : 'Show'} security details
+                    </button>
+                    {showSecurityInfo && (
+                      <div className="mt-3 text-xs text-blue-600 space-y-1">
+                        <p>• Maximum 3 messages per hour from same IP</p>
+                        <p>• Maximum 2 messages per email/phone per hour</p>
+                        <p>• CAPTCHA verification required</p>
+                        <p>• Automated spam detection</p>
+                        <p>• Content validation and filtering</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               <div className="mb-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">Send us a Message</h2>
                 <p className="text-gray-600">
@@ -240,6 +309,13 @@ const Contact: React.FC = () => {
                 </div>
 
                 <div>
+                  {/* Honeypot fields - hidden from users but visible to bots */}
+                  <div style={{ display: 'none' }}>
+                    <input type="text" name="website" tabIndex={-1} autoComplete="off" />
+                    <input type="text" name="url" tabIndex={-1} autoComplete="off" />
+                    <input type="text" name="link" tabIndex={-1} autoComplete="off" />
+                  </div>
+
                   <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
                     Message *
                   </label>
@@ -254,21 +330,82 @@ const Contact: React.FC = () => {
                     rows={6}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
                     placeholder="Tell us how we can help you..."
+                    maxLength={2000}
                   />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>Minimum 10 characters required</span>
+                    <span>{watch('message')?.length || 0}/2000</span>
+                  </div>
                   {errors.message && (
                     <p className="mt-1 text-sm text-red-600">{errors.message.message}</p>
+                  )}
+                </div>
+
+                {/* Terms Agreement */}
+                <div>
+                  <div className="flex items-start">
+                    <input
+                      {...register('agreeToTerms', {
+                        required: 'You must agree to the terms and conditions',
+                      })}
+                      id="agree-terms"
+                      type="checkbox"
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1"
+                    />
+                    <label htmlFor="agree-terms" className="ml-3 block text-sm text-gray-700">
+                      I agree to the{' '}
+                      <a href="/terms" target="_blank" className="text-blue-600 hover:text-blue-500">
+                        Terms and Conditions
+                      </a>{' '}
+                      and{' '}
+                      <a href="/privacy" target="_blank" className="text-blue-600 hover:text-blue-500">
+                        Privacy Policy
+                      </a>
+                      . I understand that my information will be used to respond to my inquiry.
+                    </label>
+                  </div>
+                  {errors.agreeToTerms && (
+                    <p className="mt-1 text-sm text-red-600">{errors.agreeToTerms.message}</p>
+                  )}
+                </div>
+
+                {/* reCAPTCHA */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Security Verification *
+                  </label>
+                  <ReCaptcha
+                    ref={recaptchaRef}
+                    onVerify={handleCaptchaChange}
+                    onExpire={handleCaptchaExpire}
+                    onError={handleCaptchaError}
+                  />
+                  {!captchaToken && (
+                    <p className="mt-2 text-sm text-gray-600 flex items-center">
+                      <AlertTriangle className="w-4 h-4 mr-1 text-yellow-500" />
+                      Please complete the CAPTCHA verification above
+                    </p>
                   )}
                 </div>
 
                 <Button
                   type="submit"
                   loading={loading}
+                  disabled={!captchaToken}
                   className="w-full md:w-auto"
                   size="lg"
                 >
                   <Send className="w-5 h-5 mr-2" />
                   Send Message
                 </Button>
+                
+                <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                  <p className="text-xs text-gray-600 flex items-start">
+                    <Shield className="w-4 h-4 mr-2 text-green-500 mt-0.5 flex-shrink-0" />
+                    Your message is protected by multiple security layers including CAPTCHA verification, 
+                    rate limiting, and spam detection. We typically respond within 24 hours during business days.
+                  </p>
+                </div>
               </form>
             </Card>
           </div>

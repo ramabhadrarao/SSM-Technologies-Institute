@@ -123,7 +123,13 @@ const contactMessageSchema = Joi.object({
   email: Joi.string().email().required(),
   phone: Joi.string().pattern(/^[+]?[\d\s-()]+$/).required(),
   subject: Joi.string().min(5).max(200).required(),
-  message: Joi.string().min(10).max(1000).required()
+  message: Joi.string().min(10).max(2000).required(),
+  captchaToken: Joi.string().required(),
+  formStartTime: Joi.string().required(),
+  // Honeypot fields (should be empty)
+  website: Joi.string().allow('').optional(),
+  url: Joi.string().allow('').optional(),
+  link: Joi.string().allow('').optional()
 });
 
 // Skill validation schemas
