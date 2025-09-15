@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
@@ -522,6 +523,9 @@ const AdminMessagesManagement: React.FC = () => {
                         <td className="px-6 py-4">
                           <div className="text-sm font-medium text-gray-900">
                             {message.subject}
+=======
+ubject}
+>>>>>>> 9f949362a841d42007ce4cd84c786ed3452a9004
                           </div>
                           <div className="text-sm text-gray-500 line-clamp-2">
                             {message.message}
