@@ -17,6 +17,7 @@ import Register from './pages/Auth/Register';
 
 // Dashboard Pages
 import AdminDashboard from './pages/Admin/Dashboard';
+import AdminUsersManagement from './pages/Admin/UsersManagement'; // Add this import
 import StudentDashboard from './pages/Student/Dashboard';
 import InstructorDashboard from './pages/Instructor/Dashboard';
 
@@ -40,6 +41,7 @@ function App() {
               
               {/* Dashboard Routes */}
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/admin/users" element={<AdminUsersManagement />} /> {/* Add this route */}
               <Route path="/student/dashboard" element={<StudentDashboard />} />
               <Route path="/instructor/dashboard" element={<InstructorDashboard />} />
             </Routes>

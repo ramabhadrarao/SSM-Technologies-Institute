@@ -11,6 +11,8 @@ const authRoutes = require('./routes/auth');
 const courseRoutes = require('./routes/courses');
 const subjectRoutes = require('./routes/subjects');
 const dashboardRoutes = require('./routes/dashboard');
+const adminRoutes = require('./routes/admin');
+const contactRoutes = require('./routes/contact'); // New public contact route
 
 const app = express();
 
@@ -25,7 +27,7 @@ app.use(sanitizeInput);
 app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
@@ -58,6 +60,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/subjects', subjectRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/contact', contactRoutes); // Public contact form
 
 // 404 handler
 app.use('*', (req, res) => {
@@ -98,6 +102,13 @@ app.listen(PORT, () => {
   console.log(`   GET  /api/dashboard/admin - Admin dashboard`);
   console.log(`   GET  /api/dashboard/student - Student dashboard`);
   console.log(`   GET  /api/dashboard/instructor - Instructor dashboard`);
+  console.log(`   GET  /api/admin/users - Admin user management`);
+  console.log(`   GET  /api/admin/courses - Admin course management`);
+  console.log(`   GET  /api/admin/batches - Admin batch management`);
+  console.log(`   GET  /api/admin/messages - Admin message management`);
+  console.log(`   GET  /api/admin/analytics/* - Admin analytics & reports`);
+  console.log(`   GET  /api/admin/settings - Admin system settings`);
+  console.log(`   POST /api/contact - Public contact form`);
 });
 
 module.exports = app;

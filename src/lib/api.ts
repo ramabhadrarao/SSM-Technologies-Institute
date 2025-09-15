@@ -43,7 +43,481 @@ class ApiClient {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
   }
+// Add these methods to your existing apiClient in src/lib/api.ts
 
+  // ========== USER MANAGEMENT METHODS (Admin) ==========
+  async getUsers(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    role?: string;
+    status?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }) {
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined) {
+          queryParams.append(key, value.toString());
+        }
+      });
+    }
+    
+    const endpoint = `/admin/users${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    return this.request(endpoint);
+  }
+
+  async getUser(id: string) {
+    return this.request(`/admin/users/${id}`);
+  }
+
+  async createUser(userData: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    phone: string;
+    whatsapp?: string;
+    role: 'admin' | 'student' | 'instructor';
+  }) {
+    return this.request('/admin/users', {
+      method: 'POST',
+      body: JSON.stringify(userData),
+    });
+  }
+
+  async updateUser(id: string, userData: {
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+    whatsapp?: string;
+    role?: 'admin' | 'student' | 'instructor';
+    isActive?: boolean;
+  }) {
+    return this.request(`/admin/users/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(userData),
+    });
+  }
+
+  async deleteUser(id: string) {
+    return this.request(`/admin/users/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async toggleUserStatus(id: string) {
+    return this.request(`/admin/users/${id}/toggle-status`, {
+      method: 'PATCH',
+    });
+  }
+
+  async bulkUpdateUsers(userIds: string[], action: 'activate' | 'deactivate' | 'delete', data?: any) {
+    return this.request('/admin/users/bulk-update', {
+      method: 'PATCH',
+      body: JSON.stringify({ userIds, action, data }),
+    });
+  }
+
+  async getUserStats() {
+    return this.request('/admin/users/stats');
+  }
+
+  // Add these methods to your existing apiClient in src/lib/api.ts
+
+  // ========== ADMIN COURSE MANAGEMENT ==========
+  async getAdminCourses(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    instructor?: string;
+    status?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }) {
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined) {
+          queryParams.append(key, value.toString());
+        }
+      });
+    }
+    
+    return this.request(`/admin/courses${queryParams.toString() ? `?${queryParams.toString()}` : ''}`);
+  }
+
+  async getAdminCourse(id: string) {
+    return this.request(`/admin/courses/${id}`);
+  }
+
+  async createAdminCourse(courseData: FormData) {
+    const headers = this.token ? { Authorization: `Bearer ${this.token}` } : {};
+    
+    return fetch(`${this.baseURL}/admin/courses`, {
+      method: 'POST',
+      headers,
+      body: courseData,
+    }).then(async response => {
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Network error' }));
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      return data.data || data;
+    });
+  }
+
+  async updateAdminCourse(id: string, courseData: FormData) {
+    const headers = this.token ? { Authorization: `Bearer ${this.token}` } : {};
+    
+    return fetch(`${this.baseURL}/admin/courses/${id}`, {
+      method: 'PUT',
+      headers,
+      body: courseData,
+    }).then(async response => {
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Network error' }));
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      return data.data || data;
+    });
+  }
+
+  async deleteAdminCourse(id: string, hard = false) {
+    return this.request(`/admin/courses/${id}?hard=${hard}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async bulkUpdateCourses(courseIds: string[], action: string, data?: any) {
+    return this.request('/admin/courses/bulk-update', {
+      method: 'PATCH',
+      body: JSON.stringify({ courseIds, action, data }),
+    });
+  }
+
+  async getCourseStats() {
+    return this.request('/admin/courses/stats');
+  }
+
+  async getAvailableInstructors() {
+    return this.request('/admin/courses/instructors');
+  }
+
+  // ========== ADMIN BATCH MANAGEMENT ==========
+  async getAdminBatches(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    course?: string;
+    instructor?: string;
+    status?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }) {
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined) {
+          queryParams.append(key, value.toString());
+        }
+      });
+    }
+    
+    return this.request(`/admin/batches${queryParams.toString() ? `?${queryParams.toString()}` : ''}`);
+  }
+
+  async getAdminBatch(id: string) {
+    return this.request(`/admin/batches/${id}`);
+  }
+
+  async createAdminBatch(batchData: {
+    name: string;
+    course: string;
+    instructor: string;
+    maxStudents: number;
+    startDate: string;
+    endDate: string;
+    schedule: Array<{
+      dayOfWeek: number;
+      startTime: string;
+      endTime: string;
+      subject?: string;
+    }>;
+    isActive?: boolean;
+  }) {
+    return this.request('/admin/batches', {
+      method: 'POST',
+      body: JSON.stringify(batchData),
+    });
+  }
+
+  async updateAdminBatch(id: string, batchData: any) {
+    return this.request(`/admin/batches/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(batchData),
+    });
+  }
+
+  async deleteAdminBatch(id: string, hard = false) {
+    return this.request(`/admin/batches/${id}?hard=${hard}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async addStudentsToBatch(batchId: string, studentIds: string[]) {
+    return this.request(`/admin/batches/${batchId}/students`, {
+      method: 'POST',
+      body: JSON.stringify({ studentIds }),
+    });
+  }
+
+  async removeStudentFromBatch(batchId: string, studentId: string) {
+    return this.request(`/admin/batches/${batchId}/students/${studentId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getBatchStats() {
+    return this.request('/admin/batches/stats');
+  }
+
+  async scheduleClass(batchId: string, classData: {
+    date: string;
+    startTime: string;
+    endTime: string;
+    subject?: string;
+    meetingLink?: string;
+  }) {
+    return this.request(`/admin/batches/${batchId}/classes`, {
+      method: 'POST',
+      body: JSON.stringify(classData),
+    });
+  }
+
+  async updateClassAttendance(batchId: string, classId: string, attendance: any[]) {
+    return this.request(`/admin/batches/${batchId}/classes/${classId}/attendance`, {
+      method: 'PUT',
+      body: JSON.stringify({ attendance }),
+    });
+  }
+
+  // ========== CONTACT MESSAGES MANAGEMENT ==========
+  async getContactMessages(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: string;
+    priority?: string;
+    startDate?: string;
+    endDate?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }) {
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined) {
+          queryParams.append(key, value.toString());
+        }
+      });
+    }
+    
+    return this.request(`/admin/messages${queryParams.toString() ? `?${queryParams.toString()}` : ''}`);
+  }
+
+  async getContactMessage(id: string) {
+    return this.request(`/admin/messages/${id}`);
+  }
+
+  async updateMessageStatus(id: string, status: 'new' | 'read' | 'replied' | 'closed') {
+    return this.request(`/admin/messages/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
+  }
+
+  async updateMessagePriority(id: string, priority: 'low' | 'medium' | 'high' | 'urgent') {
+    return this.request(`/admin/messages/${id}/priority`, {
+      method: 'PATCH',
+      body: JSON.stringify({ priority }),
+    });
+  }
+
+  async replyToMessage(id: string, replyMessage: string) {
+    return this.request(`/admin/messages/${id}/reply`, {
+      method: 'POST',
+      body: JSON.stringify({ replyMessage }),
+    });
+  }
+
+  async deleteContactMessage(id: string) {
+    return this.request(`/admin/messages/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async bulkUpdateMessages(messageIds: string[], action: string, data?: any) {
+    return this.request('/admin/messages/bulk-update', {
+      method: 'PATCH',
+      body: JSON.stringify({ messageIds, action, data }),
+    });
+  }
+
+  async getContactStats() {
+    return this.request('/admin/messages/stats');
+  }
+
+  // ========== ANALYTICS & REPORTS ==========
+  async getDashboardAnalytics(params?: {
+    startDate?: string;
+    endDate?: string;
+    period?: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  }) {
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined) {
+          queryParams.append(key, value.toString());
+        }
+      });
+    }
+    
+    return this.request(`/admin/analytics/dashboard${queryParams.toString() ? `?${queryParams.toString()}` : ''}`);
+  }
+
+  async getUserAnalytics(params?: {
+    period?: string;
+    startDate?: string;
+    endDate?: string;
+  }) {
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined) {
+          queryParams.append(key, value.toString());
+        }
+      });
+    }
+    
+    return this.request(`/admin/analytics/users${queryParams.toString() ? `?${queryParams.toString()}` : ''}`);
+  }
+
+  async getCourseAnalytics(params?: any) {
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined) {
+          queryParams.append(key, value.toString());
+        }
+      });
+    }
+    
+    return this.request(`/admin/analytics/courses${queryParams.toString() ? `?${queryParams.toString()}` : ''}`);
+  }
+
+  async getFinancialAnalytics(params?: any) {
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined) {
+          queryParams.append(key, value.toString());
+        }
+      });
+    }
+    
+    return this.request(`/admin/analytics/financial${queryParams.toString() ? `?${queryParams.toString()}` : ''}`);
+  }
+
+  async getInstructorAnalytics() {
+    return this.request('/admin/analytics/instructors');
+  }
+
+  async getStudentAnalytics() {
+    return this.request('/admin/analytics/students');
+  }
+
+  async generateCustomReport(reportData: {
+    reportType: 'enrollment' | 'revenue' | 'performance' | 'attendance';
+    startDate: string;
+    endDate: string;
+    filters?: any;
+    groupBy?: string;
+    metrics?: string[];
+  }) {
+    return this.request('/admin/reports/generate', {
+      method: 'POST',
+      body: JSON.stringify(reportData),
+    });
+  }
+
+  // ========== SYSTEM SETTINGS ==========
+  async getSystemSettings() {
+    return this.request('/admin/settings');
+  }
+
+  async getSettingCategory(category: string) {
+    return this.request(`/admin/settings/${category}`);
+  }
+
+  async updateSystemSettings(category: string, settings: any) {
+    return this.request('/admin/settings', {
+      method: 'PUT',
+      body: JSON.stringify({ category, settings }),
+    });
+  }
+
+  async resetSettings(category?: string) {
+    return this.request('/admin/settings/reset', {
+      method: 'POST',
+      body: JSON.stringify({ category }),
+    });
+  }
+
+  async getSystemInfo() {
+    return this.request('/admin/system/info');
+  }
+
+  async backupSystem() {
+    return this.request('/admin/system/backup', {
+      method: 'POST',
+    });
+  }
+
+  async testEmailConfig(testEmail: string) {
+    return this.request('/admin/system/test-email', {
+      method: 'POST',
+      body: JSON.stringify({ testEmail }),
+    });
+  }
+
+  async getMaintenanceMode() {
+    return this.request('/admin/system/maintenance');
+  }
+
+  async toggleMaintenanceMode(enabled: boolean, message?: string, allowedIPs?: string[]) {
+    return this.request('/admin/system/maintenance', {
+      method: 'POST',
+      body: JSON.stringify({ enabled, message, allowedIPs }),
+    });
+  }
+
+  // ========== PUBLIC CONTACT FORM ==========
+  async sendContactMessage(messageData: {
+    name: string;
+    email: string;
+    phone: string;
+    subject: string;
+    message: string;
+  }) {
+    return this.request('/contact', {
+      method: 'POST',
+      body: JSON.stringify(messageData),
+    });
+  }
   // ========== AUTH METHODS ==========
   async register(userData: {
     email: string;
