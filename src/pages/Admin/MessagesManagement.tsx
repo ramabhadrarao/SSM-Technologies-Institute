@@ -789,7 +789,7 @@ const AdminMessagesManagement: React.FC = () => {
     </div>
   );
 
-  async function handleBulkAction(action: 'mark-read' | 'mark-closed' | 'delete') {
+  const handleBulkAction = async (action: 'mark-read' | 'mark-closed' | 'delete') => {
     if (selectedMessages.length === 0) {
       toast.error('Please select messages first');
       return;
@@ -812,7 +812,7 @@ const AdminMessagesManagement: React.FC = () => {
     } finally {
       setActionLoading(null);
     }
-  }
+  };
 };
 
 export default AdminMessagesManagement;

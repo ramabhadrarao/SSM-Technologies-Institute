@@ -43,7 +43,253 @@ class ApiClient {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
   }
-// Add these methods to your existing apiClient in src/lib/api.ts
+
+  // ========== AUTH METHODS ==========
+  async register(userData: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    phone: string;
+    whatsapp?: string;
+    role: 'student' | 'instructor';
+  }) {
+    return this.request('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(userData),
+    });
+  }
+
+  async login(email: string, password: string) {
+    const response = await this.request<{
+      user: any;
+      accessToken: string;
+      refreshToken: string;
+    }>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (response.accessToken) {
+      this.setToken(response.accessToken);
+      localStorage.setItem('refreshToken', response.refreshToken);
+    }
+
+    return response;
+  }
+
+  async logout() {
+    try {
+      await this.request('/auth/logout', { method: 'POST' });
+    } finally {
+      this.removeToken();
+    }
+  }
+
+  async getProfile() {
+    return this.request('/auth/profile');
+  }
+
+  async updateProfile(userData: {
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+    whatsapp?: string;
+  }) {
+    return this.request('/auth/profile', {
+      method: 'PUT',
+      body: JSON.stringify(userData),
+    });
+  }
+
+  async changePassword(passwordData: {
+    currentPassword: string;
+    newPassword: string;
+  }) {
+    return this.request('/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify(passwordData),
+    });
+  }
+
+  async refreshToken() {
+    const refreshToken = localStorage.getItem('refreshToken');
+    if (!refreshToken) {
+      throw new Error('No refresh token available');
+    }
+
+    const response = await this.request<{
+      accessToken: string;
+      refreshToken: string;
+    }>('/auth/refresh-token', {
+      method: 'POST',
+      body: JSON.stringify({ refreshToken }),
+    });
+
+    if (response.accessToken) {
+      this.setToken(response.accessToken);
+      localStorage.setItem('refreshToken', response.refreshToken);
+    }
+
+    return response;
+  }
+
+  // ========== DASHBOARD METHODS ==========
+  async getAdminDashboard() {
+    return this.request('/dashboard/admin');
+  }
+
+  async getStudentDashboard() {
+    return this.request('/dashboard/student');
+  }
+
+  async getInstructorDashboard() {
+    return this.request('/dashboard/instructor');
+  }
+
+  // ========== COURSE METHODS ==========
+  async getCourses(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    category?: string;
+    minFees?: number;
+    maxFees?: number;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }) {
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined) {
+          queryParams.append(key, value.toString());
+        }
+      });
+    }
+    
+    const endpoint = `/courses${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    return this.request(endpoint);
+  }
+
+  async getCourse(id: string) {
+    return this.request(`/courses/${id}`);
+  }
+
+  async createCourse(courseData: FormData) {
+    const headers = this.token ? { Authorization: `Bearer ${this.token}` } : {};
+
+    return fetch(`${this.baseURL}/courses`, {
+      method: 'POST',
+      headers,
+      body: courseData,
+    }).then(async response => {
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Network error' }));
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      return data.data || data;
+    });
+  }
+
+  async updateCourse(id: string, courseData: FormData) {
+    const headers = this.token ? { Authorization: `Bearer ${this.token}` } : {};
+
+    return fetch(`${this.baseURL}/courses/${id}`, {
+      method: 'PUT',
+      headers,
+      body: courseData,
+    }).then(async response => {
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Network error' }));
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      return data.data || data;
+    });
+  }
+
+  async deleteCourse(id: string) {
+    return this.request(`/courses/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async addCourseReview(courseId: string, reviewData: {
+    rating: number;
+    comment?: string;
+  }) {
+    return this.request(`/courses/${courseId}/review`, {
+      method: 'POST',
+      body: JSON.stringify(reviewData),
+    });
+  }
+
+  // ========== SUBJECT METHODS ==========
+  async getSubjects(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    course?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }) {
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined) {
+          queryParams.append(key, value.toString());
+        }
+      });
+    }
+    
+    const endpoint = `/subjects${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    return this.request(endpoint);
+  }
+
+  async getSubject(id: string) {
+    return this.request(`/subjects/${id}`);
+  }
+
+  async createSubject(subjectData: FormData) {
+    const headers = this.token ? { Authorization: `Bearer ${this.token}` } : {};
+
+    return fetch(`${this.baseURL}/subjects`, {
+      method: 'POST',
+      headers,
+      body: subjectData,
+    }).then(async response => {
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Network error' }));
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      return data.data || data;
+    });
+  }
+
+  async updateSubject(id: string, subjectData: FormData) {
+    const headers = this.token ? { Authorization: `Bearer ${this.token}` } : {};
+
+    return fetch(`${this.baseURL}/subjects/${id}`, {
+      method: 'PUT',
+      headers,
+      body: subjectData,
+    }).then(async response => {
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Network error' }));
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      return data.data || data;
+    });
+  }
+
+  async deleteSubject(id: string) {
+    return this.request(`/subjects/${id}`, {
+      method: 'DELETE',
+    });
+  }
 
   // ========== USER MANAGEMENT METHODS (Admin) ==========
   async getUsers(params?: {
@@ -123,8 +369,6 @@ class ApiClient {
   async getUserStats() {
     return this.request('/admin/users/stats');
   }
-
-  // Add these methods to your existing apiClient in src/lib/api.ts
 
   // ========== ADMIN COURSE MANAGEMENT ==========
   async getAdminCourses(params?: {
@@ -371,6 +615,20 @@ class ApiClient {
     return this.request('/admin/messages/stats');
   }
 
+  // ========== PUBLIC CONTACT FORM ==========
+  async createContactMessage(messageData: {
+    name: string;
+    email: string;
+    phone: string;
+    subject: string;
+    message: string;
+  }) {
+    return this.request('/contact', {
+      method: 'POST',
+      body: JSON.stringify(messageData),
+    });
+  }
+
   // ========== ANALYTICS & REPORTS ==========
   async getDashboardAnalytics(params?: {
     startDate?: string;
@@ -505,368 +763,6 @@ class ApiClient {
     });
   }
 
-  // ========== PUBLIC CONTACT FORM ==========
-  async sendContactMessage(messageData: {
-    name: string;
-    email: string;
-    phone: string;
-    subject: string;
-    message: string;
-  }) {
-    return this.request('/contact', {
-      method: 'POST',
-      body: JSON.stringify(messageData),
-    });
-  }
-
-  // ========== CONTACT MESSAGE METHODS (Public) ==========
-  async createContactMessage(messageData: {
-    name: string;
-    email: string;
-    phone: string;
-    subject: string;
-    message: string;
-  }) {
-    return this.request('/contact', {
-      method: 'POST',
-      body: JSON.stringify(messageData),
-    });
-  }
-  // ========== AUTH METHODS ==========
-  async register(userData: {
-    email: string;
-    password: string;
-    firstName: string;
-    lastName: string;
-    phone: string;
-    whatsapp?: string;
-    role: 'student' | 'instructor';
-  }) {
-    return this.request('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify(userData),
-    });
-  }
-
-  async login(email: string, password: string) {
-    const response = await this.request<{
-      user: any;
-      accessToken: string;
-      refreshToken: string;
-    }>('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
-
-    if (response.accessToken) {
-      this.setToken(response.accessToken);
-      localStorage.setItem('refreshToken', response.refreshToken);
-    }
-
-    return response;
-  }
-
-  async logout() {
-    try {
-      await this.request('/auth/logout', { method: 'POST' });
-    } finally {
-      this.removeToken();
-    }
-  }
-
-  async getProfile() {
-    return this.request('/auth/profile');
-  }
-
-  async updateProfile(userData: {
-    firstName?: string;
-    lastName?: string;
-    phone?: string;
-    whatsapp?: string;
-  }) {
-    return this.request('/auth/profile', {
-      method: 'PUT',
-      body: JSON.stringify(userData),
-    });
-  }
-
-  async changePassword(passwordData: {
-    currentPassword: string;
-    newPassword: string;
-  }) {
-    return this.request('/auth/change-password', {
-      method: 'POST',
-      body: JSON.stringify(passwordData),
-    });
-  }
-
-  // ========== DASHBOARD METHODS ==========
-  async getAdminDashboard() {
-    return this.request('/dashboard/admin');
-  }
-
-  async getStudentDashboard() {
-    return this.request('/dashboard/student');
-  }
-
-  async getInstructorDashboard() {
-    return this.request('/dashboard/instructor');
-  }
-
-  // ========== COURSE METHODS ==========
-  async getCourses(params?: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    category?: string;
-    minFees?: number;
-    maxFees?: number;
-    sortBy?: string;
-    sortOrder?: 'asc' | 'desc';
-  }) {
-    const queryParams = new URLSearchParams();
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) {
-          queryParams.append(key, value.toString());
-        }
-      });
-    }
-    
-    const endpoint = `/courses${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    return this.request(endpoint);
-  }
-
-  async getCourse(id: string) {
-    return this.request(`/courses/${id}`);
-  }
-
-  async createCourse(courseData: FormData) {
-    // Remove Content-Type header to let browser set it for FormData
-    const { ['Content-Type']: removed, ...headers } = this.token 
-      ? { Authorization: `Bearer ${this.token}` } 
-      : {};
-
-    return fetch(`${this.baseURL}/courses`, {
-      method: 'POST',
-      headers,
-      body: courseData,
-    }).then(async response => {
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Network error' }));
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      return data.data || data;
-    });
-  }
-
-  async updateCourse(id: string, courseData: FormData) {
-    const { ['Content-Type']: removed, ...headers } = this.token 
-      ? { Authorization: `Bearer ${this.token}` } 
-      : {};
-
-    return fetch(`${this.baseURL}/courses/${id}`, {
-      method: 'PUT',
-      headers,
-      body: courseData,
-    }).then(async response => {
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Network error' }));
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      return data.data || data;
-    });
-  }
-
-  async deleteCourse(id: string) {
-    return this.request(`/courses/${id}`, {
-      method: 'DELETE',
-    });
-  }
-
-  async addCourseReview(courseId: string, reviewData: {
-    rating: number;
-    comment?: string;
-  }) {
-    return this.request(`/courses/${courseId}/review`, {
-      method: 'POST',
-      body: JSON.stringify(reviewData),
-    });
-  }
-
-  // ========== SUBJECT METHODS ==========
-  async getSubjects(params?: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    course?: string;
-    sortBy?: string;
-    sortOrder?: 'asc' | 'desc';
-  }) {
-    const queryParams = new URLSearchParams();
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) {
-          queryParams.append(key, value.toString());
-        }
-      });
-    }
-    
-    const endpoint = `/subjects${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    return this.request(endpoint);
-  }
-
-  async getSubject(id: string) {
-    return this.request(`/subjects/${id}`);
-  }
-
-  async createSubject(subjectData: FormData) {
-    const { ['Content-Type']: removed, ...headers } = this.token 
-      ? { Authorization: `Bearer ${this.token}` } 
-      : {};
-
-    return fetch(`${this.baseURL}/subjects`, {
-      method: 'POST',
-      headers,
-      body: subjectData,
-    }).then(async response => {
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Network error' }));
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      return data.data || data;
-    });
-  }
-
-  async updateSubject(id: string, subjectData: FormData) {
-    const { ['Content-Type']: removed, ...headers } = this.token 
-      ? { Authorization: `Bearer ${this.token}` } 
-      : {};
-
-    return fetch(`${this.baseURL}/subjects/${id}`, {
-      method: 'PUT',
-      headers,
-      body: subjectData,
-    }).then(async response => {
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Network error' }));
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      return data.data || data;
-    });
-  }
-
-  async deleteSubject(id: string) {
-    return this.request(`/subjects/${id}`, {
-      method: 'DELETE',
-    });
-  }
-
-  // ========== USER MANAGEMENT METHODS (Admin) ==========
-  async getUsers(params?: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    role?: string;
-    status?: string;
-    sortBy?: string;
-    sortOrder?: 'asc' | 'desc';
-  }) {
-    const queryParams = new URLSearchParams();
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) {
-          queryParams.append(key, value.toString());
-        }
-      });
-    }
-    
-    const endpoint = `/admin/users${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    return this.request(endpoint);
-  }
-
-  async getUser(id: string) {
-    return this.request(`/admin/users/${id}`);
-  }
-
-  async updateUserStatus(id: string, status: 'active' | 'inactive') {
-    return this.request(`/admin/users/${id}/status`, {
-      method: 'PUT',
-      body: JSON.stringify({ status }),
-    });
-  }
-
-  async deleteUser(id: string) {
-    return this.request(`/admin/users/${id}`, {
-      method: 'DELETE',
-    });
-  }
-
-  // ========== BATCH METHODS ==========
-  async getBatches(params?: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    course?: string;
-    instructor?: string;
-    status?: string;
-    sortBy?: string;
-    sortOrder?: 'asc' | 'desc';
-  }) {
-    const queryParams = new URLSearchParams();
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) {
-          queryParams.append(key, value.toString());
-        }
-      });
-    }
-    
-    const endpoint = `/batches${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    return this.request(endpoint);
-  }
-
-  async getBatch(id: string) {
-    return this.request(`/batches/${id}`);
-  }
-
-  async createBatch(batchData: {
-    name: string;
-    course: string;
-    instructor: string;
-    maxStudents: number;
-    startDate: string;
-    endDate: string;
-    schedule: Array<{
-      dayOfWeek: number;
-      startTime: string;
-      endTime: string;
-      subject?: string;
-    }>;
-  }) {
-    return this.request('/batches', {
-      method: 'POST',
-      body: JSON.stringify(batchData),
-    });
-  }
-
-  async updateBatch(id: string, batchData: any) {
-    return this.request(`/batches/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(batchData),
-    });
-  }
-
-  async deleteBatch(id: string) {
-    return this.request(`/batches/${id}`, {
-      method: 'DELETE',
-    });
-  }
-
   // ========== ENROLLMENT METHODS ==========
   async enrollInCourse(courseId: string) {
     return this.request(`/enrollments/${courseId}`, {
@@ -882,55 +778,6 @@ class ApiClient {
     return this.request(`/enrollments/${enrollmentId}/progress`, {
       method: 'PUT',
       body: JSON.stringify({ progress }),
-    });
-  }
-
-  // ========== CONTACT & SUPPORT METHODS ==========
-  async getContactMessages(params?: {
-    page?: number;
-    limit?: number;
-    status?: string;
-    priority?: string;
-    sortBy?: string;
-    sortOrder?: 'asc' | 'desc';
-  }) {
-    const queryParams = new URLSearchParams();
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) {
-          queryParams.append(key, value.toString());
-        }
-      });
-    }
-    
-    const endpoint = `/contact/messages${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    return this.request(endpoint);
-  }
-
-  async sendContactMessage(messageData: {
-    name: string;
-    email: string;
-    phone: string;
-    subject: string;
-    message: string;
-  }) {
-    return this.request('/contact/messages', {
-      method: 'POST',
-      body: JSON.stringify(messageData),
-    });
-  }
-
-  async replyToContactMessage(messageId: string, reply: string) {
-    return this.request(`/contact/messages/${messageId}/reply`, {
-      method: 'POST',
-      body: JSON.stringify({ reply }),
-    });
-  }
-
-  async updateMessageStatus(messageId: string, status: string) {
-    return this.request(`/contact/messages/${messageId}/status`, {
-      method: 'PUT',
-      body: JSON.stringify({ status }),
     });
   }
 
@@ -954,40 +801,6 @@ class ApiClient {
       const data = await response.json();
       return data.data || data;
     });
-  }
-
-  // ========== ANALYTICS & REPORTS METHODS ==========
-  async getAnalytics(type: 'admin' | 'instructor' | 'student', params?: {
-    startDate?: string;
-    endDate?: string;
-    courseId?: string;
-    batchId?: string;
-  }) {
-    const queryParams = new URLSearchParams();
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) {
-          queryParams.append(key, value.toString());
-        }
-      });
-    }
-    
-    const endpoint = `/analytics/${type}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    return this.request(endpoint);
-  }
-
-  async getReports(type: 'enrollment' | 'performance' | 'revenue', params?: any) {
-    const queryParams = new URLSearchParams();
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) {
-          queryParams.append(key, value.toString());
-        }
-      });
-    }
-    
-    const endpoint = `/reports/${type}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    return this.request(endpoint);
   }
 
   // ========== SEARCH METHODS ==========
@@ -1045,28 +858,6 @@ class ApiClient {
     return fetch(`${this.baseURL.replace('/api', '')}/health`)
       .then(res => res.json())
       .catch(() => ({ success: false, message: 'Health check failed' }));
-  }
-
-  async refreshToken() {
-    const refreshToken = localStorage.getItem('refreshToken');
-    if (!refreshToken) {
-      throw new Error('No refresh token available');
-    }
-
-    const response = await this.request<{
-      accessToken: string;
-      refreshToken: string;
-    }>('/auth/refresh-token', {
-      method: 'POST',
-      body: JSON.stringify({ refreshToken }),
-    });
-
-    if (response.accessToken) {
-      this.setToken(response.accessToken);
-      localStorage.setItem('refreshToken', response.refreshToken);
-    }
-
-    return response;
   }
 
   // ========== HELPER METHODS ==========
