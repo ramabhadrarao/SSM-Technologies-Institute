@@ -17,7 +17,12 @@ import Register from './pages/Auth/Register';
 
 // Dashboard Pages
 import AdminDashboard from './pages/Admin/Dashboard';
-import AdminUsersManagement from './pages/Admin/UsersManagement'; // Add this import
+import AdminUsersManagement from './pages/Admin/UsersManagement';
+import AdminCoursesManagement from './pages/Admin/CoursesManagement';
+import AdminBatchesManagement from './pages/Admin/BatchesManagement';
+import AdminMessagesManagement from './pages/Admin/MessagesManagement';
+import AdminReportsAnalytics from './pages/Admin/ReportsAnalytics';
+import AdminSystemSettings from './pages/Admin/SystemSettings';
 import StudentDashboard from './pages/Student/Dashboard';
 import InstructorDashboard from './pages/Instructor/Dashboard';
 
@@ -39,9 +44,16 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               
-              {/* Dashboard Routes */}
+              {/* Admin Routes */}
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
-              <Route path="/admin/users" element={<AdminUsersManagement />} /> {/* Add this route */}
+              <Route path="/admin/users" element={<AdminUsersManagement />} />
+              <Route path="/admin/courses" element={<AdminCoursesManagement />} />
+              <Route path="/admin/batches" element={<AdminBatchesManagement />} />
+              <Route path="/admin/messages" element={<AdminMessagesManagement />} />
+              <Route path="/admin/reports" element={<AdminReportsAnalytics />} />
+              <Route path="/admin/settings" element={<AdminSystemSettings />} />
+              
+              {/* Student & Instructor Routes */}
               <Route path="/student/dashboard" element={<StudentDashboard />} />
               <Route path="/instructor/dashboard" element={<InstructorDashboard />} />
             </Routes>
