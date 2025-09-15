@@ -184,21 +184,26 @@ const AdminMessagesManagement: React.FC = () => {
     }
   };
 
-  const handleBulkAction = async (action: 'mark-read' | 'mark-closed' | 'set-priority' | 'delete', data?: any) => {
+  const handleBulkActions = async (action: 'mark-read' | 'mark-closed' | 'delete') => {
     if (selectedMessages.length === 0) {
       toast.error('Please select messages first');
       return;
     }
 
+    const actionText = action === 'mark-read' ? 'mark as read' : action === 'mark-closed' ? 'close' : 'delete';
+    if (!window.confirm(`Are you sure you want to ${actionText} ${selectedMessages.length} message(s)?`)) {
+      return;
+    }
+
     try {
       setActionLoading('bulk');
-      await apiClient.bulkUpdateMessages(selectedMessages, action, data);
-      toast.success('Messages updated successfully');
+      await apiClient.bulkUpdateMessages(selectedMessages, action);
+      toast.success(`Messages ${actionText} successfully`);
       setSelectedMessages([]);
       fetchMessages();
       fetchMessageStats();
     } catch (error: any) {
-      toast.error(error.message || 'Failed to update messages');
+      toast.error(error.message || `Failed to ${actionText} messages`);
     } finally {
       setActionLoading(null);
     }
@@ -403,7 +408,7 @@ const AdminMessagesManagement: React.FC = () => {
                 <Button
                   variant="secondary"
                   size="sm"
-                  onClick={() => handleBulkAction('mark-read')}
+                  onClick={() => handleBulkActions('mark-read')}
                   loading={actionLoading === 'bulk'}
                 >
                   Mark Read ({selectedMessages.length})
@@ -411,7 +416,7 @@ const AdminMessagesManagement: React.FC = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleBulkAction('mark-closed')}
+                  onClick={() => handleBulkActions('mark-closed')}
                   loading={actionLoading === 'bulk'}
                 >
                   Close ({selectedMessages.length})
@@ -419,7 +424,7 @@ const AdminMessagesManagement: React.FC = () => {
                 <Button
                   variant="danger"
                   size="sm"
-                  onClick={() => handleBulkAction('delete')}
+                  onClick={() => handleBulkActions('delete')}
                   loading={actionLoading === 'bulk'}
                 >
                   Delete ({selectedMessages.length})
@@ -788,31 +793,6 @@ const AdminMessagesManagement: React.FC = () => {
       )}
     </div>
   );
-
-  const handleBulkAction = async (action: 'mark-read' | 'mark-closed' | 'delete') => {
-    if (selectedMessages.length === 0) {
-      toast.error('Please select messages first');
-      return;
-    }
-
-    const actionText = action === 'mark-read' ? 'mark as read' : action === 'mark-closed' ? 'close' : 'delete';
-    if (!window.confirm(`Are you sure you want to ${actionText} ${selectedMessages.length} message(s)?`)) {
-      return;
-    }
-
-    try {
-      setActionLoading('bulk');
-      await apiClient.bulkUpdateMessages(selectedMessages, action);
-      toast.success(`Messages ${actionText} successfully`);
-      setSelectedMessages([]);
-      fetchMessages();
-      fetchMessageStats();
-    } catch (error: any) {
-      toast.error(error.message || `Failed to ${actionText} messages`);
-    } finally {
-      setActionLoading(null);
-    }
-  };
 };
 
 export default AdminMessagesManagement;
