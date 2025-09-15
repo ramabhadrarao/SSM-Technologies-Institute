@@ -518,6 +518,20 @@ class ApiClient {
       body: JSON.stringify(messageData),
     });
   }
+
+  // ========== CONTACT MESSAGE METHODS (Public) ==========
+  async createContactMessage(messageData: {
+    name: string;
+    email: string;
+    phone: string;
+    subject: string;
+    message: string;
+  }) {
+    return this.request('/contact', {
+      method: 'POST',
+      body: JSON.stringify(messageData),
+    });
+  }
   // ========== AUTH METHODS ==========
   async register(userData: {
     email: string;
