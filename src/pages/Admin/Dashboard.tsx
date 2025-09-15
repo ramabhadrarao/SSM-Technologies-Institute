@@ -14,6 +14,7 @@ import {
   UserX,
   Settings,
   BarChart3,
+  FileText,
   IndianRupee
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
@@ -165,6 +166,13 @@ const AdminDashboard: React.FC = () => {
       href: '/admin/courses',
       color: 'bg-green-50 text-green-600',
       count: dashboardData.stats.totalCourses
+    },
+    {
+      title: 'Subject Management',
+      description: 'Manage course subjects and materials',
+      icon: <FileText className="w-6 h-6" />,
+      href: '/admin/subjects',
+      color: 'bg-yellow-50 text-yellow-600'
     },
     {
       title: 'Batch Scheduling',

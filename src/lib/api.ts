@@ -549,6 +549,106 @@ class ApiClient {
     });
   }
 
+  // ========== ADMIN SUBJECT MANAGEMENT ==========
+  async getAdminSubjects(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    course?: string;
+    status?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }) {
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined) {
+          queryParams.append(key, value.toString());
+        }
+      });
+    }
+    
+    return this.request(`/admin/subjects${queryParams.toString() ? `?${queryParams.toString()}` : ''}`);
+  }
+
+  async getAdminSubject(id: string) {
+    return this.request(`/admin/subjects/${id}`);
+  }
+
+  async createAdminSubject(subjectData: FormData) {
+    const headers = this.token ? { Authorization: `Bearer ${this.token}` } : {};
+    
+    return fetch(`${this.baseURL}/admin/subjects`, {
+      method: 'POST',
+      headers,
+      body: subjectData,
+    }).then(async response => {
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Network error' }));
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      return data.data || data;
+    });
+  }
+
+  async updateAdminSubject(id: string, subjectData: FormData) {
+    const headers = this.token ? { Authorization: `Bearer ${this.token}` } : {};
+    
+    return fetch(`${this.baseURL}/admin/subjects/${id}`, {
+      method: 'PUT',
+      headers,
+      body: subjectData,
+    }).then(async response => {
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Network error' }));
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      return data.data || data;
+    });
+  }
+
+  async deleteAdminSubject(id: string, hard = false) {
+    return this.request(`/admin/subjects/${id}?hard=${hard}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async bulkUpdateSubjects(subjectIds: string[], action: string, data?: any) {
+    return this.request('/admin/subjects/bulk-update', {
+      method: 'PATCH',
+      body: JSON.stringify({ subjectIds, action, data }),
+    });
+  }
+
+  async getSubjectStats() {
+    return this.request('/admin/subjects/stats');
+  }
+
+  async addSubjectMaterial(subjectId: string, materialData: FormData) {
+    const headers = this.token ? { Authorization: `Bearer ${this.token}` } : {};
+    
+    return fetch(`${this.baseURL}/admin/subjects/${subjectId}/materials`, {
+      method: 'POST',
+      headers,
+      body: materialData,
+    }).then(async response => {
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Network error' }));
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      return data.data || data;
+    });
+  }
+
+  async removeSubjectMaterial(subjectId: string, materialId: string) {
+    return this.request(`/admin/subjects/${subjectId}/materials/${materialId}`, {
+      method: 'DELETE',
+    });
+  }
+
   // ========== CONTACT MESSAGES MANAGEMENT ==========
   async getContactMessages(params?: {
     page?: number;
