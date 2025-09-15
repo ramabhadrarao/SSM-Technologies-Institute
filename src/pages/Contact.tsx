@@ -17,10 +17,7 @@ import {
 } from 'lucide-react';
 import Button from '../components/UI/Button';
 import Card from '../components/UI/Card';
-<<<<<<< HEAD
-=======
 import ReCaptcha, { ReCaptchaRef } from '../components/UI/ReCaptcha';
->>>>>>> 9f949362a841d42007ce4cd84c786ed3452a9004
 import { apiClient } from '../lib/api';
 import toast from 'react-hot-toast';
 
@@ -56,9 +53,6 @@ const Contact: React.FC = () => {
 
     setLoading(true);
     try {
-<<<<<<< HEAD
-      await apiClient.createContactMessage(data);
-=======
       const messageData = {
         ...data,
         captchaToken,
@@ -70,7 +64,6 @@ const Contact: React.FC = () => {
       };
       
       await apiClient.createContactMessage(messageData);
->>>>>>> 9f949362a841d42007ce4cd84c786ed3452a9004
       toast.success('Message sent successfully! We\'ll get back to you soon.');
       reset();
       setCaptchaToken(null);
