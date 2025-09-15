@@ -20,6 +20,7 @@ import AdminDashboard from './pages/Admin/Dashboard';
 import AdminUsersManagement from './pages/Admin/UsersManagement';
 import AdminCoursesManagement from './pages/Admin/CoursesManagement';
 import AdminBatchesManagement from './pages/Admin/BatchesManagement';
+import AdminSubjectsManagement from './pages/Admin/SubjectsManagement';
 import AdminMessagesManagement from './pages/Admin/MessagesManagement';
 import AdminReportsAnalytics from './pages/Admin/ReportsAnalytics';
 import AdminSystemSettings from './pages/Admin/SystemSettings';
@@ -48,6 +49,7 @@ function App() {
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/admin/users" element={<AdminUsersManagement />} />
               <Route path="/admin/courses" element={<AdminCoursesManagement />} />
+              <Route path="/admin/subjects" element={<AdminSubjectsManagement />} />
               <Route path="/admin/batches" element={<AdminBatchesManagement />} />
               <Route path="/admin/messages" element={<AdminMessagesManagement />} />
               <Route path="/admin/reports" element={<AdminReportsAnalytics />} />

@@ -75,6 +75,18 @@ const {
   toggleMaintenanceMode
 } = require('../controllers/settingsController');
 
+const {
+  getAdminSubjects,
+  getAdminSubject,
+  createAdminSubject,
+  updateAdminSubject,
+  deleteAdminSubject,
+  bulkUpdateSubjects,
+  getSubjectStats,
+  addSubjectMaterial,
+  removeSubjectMaterial
+} = require('../controllers/adminSubjectController');
+
 // All routes require admin authentication
 router.use(auth);
 router.use(authorize('admin'));
@@ -114,6 +126,32 @@ router.put('/courses/:id',
 );
 router.delete('/courses/:id', rateLimiters.general, deleteAdminCourse);
 router.patch('/courses/bulk-update', rateLimiters.general, bulkUpdateCourses);
+
+// ========== SUBJECT MANAGEMENT ROUTES ==========
+router.get('/subjects/stats', rateLimiters.general, getSubjectStats);
+router.get('/subjects', rateLimiters.general, getAdminSubjects);
+router.get('/subjects/:id', rateLimiters.general, getAdminSubject);
+router.post('/subjects', 
+  rateLimiters.upload,
+  uploadConfigs.subject.single('image'),
+  handleUploadError,
+  createAdminSubject
+);
+router.put('/subjects/:id',
+  rateLimiters.upload,
+  uploadConfigs.subject.single('image'),
+  handleUploadError,
+  updateAdminSubject
+);
+router.delete('/subjects/:id', rateLimiters.general, deleteAdminSubject);
+router.patch('/subjects/bulk-update', rateLimiters.general, bulkUpdateSubjects);
+router.post('/subjects/:id/materials',
+  rateLimiters.upload,
+  uploadConfigs.material.single('file'),
+  handleUploadError,
+  addSubjectMaterial
+);
+router.delete('/subjects/:id/materials/:materialId', rateLimiters.general, removeSubjectMaterial);
 
 // ========== BATCH MANAGEMENT ROUTES ==========
 router.get('/batches/stats', rateLimiters.general, getBatchStats);

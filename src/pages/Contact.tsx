@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import Button from '../components/UI/Button';
 import Card from '../components/UI/Card';
+import { apiClient } from '../lib/api';
 import toast from 'react-hot-toast';
 
 interface ContactForm {
@@ -38,10 +39,7 @@ const Contact: React.FC = () => {
   const onSubmit = async (data: ContactForm) => {
     setLoading(true);
     try {
-      // Simulate API call - replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      console.log('Contact form data:', data);
+      await apiClient.createContactMessage(data);
       toast.success('Message sent successfully! We\'ll get back to you soon.');
       reset();
     } catch (error) {

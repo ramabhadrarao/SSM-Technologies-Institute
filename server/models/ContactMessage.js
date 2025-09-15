@@ -44,6 +44,17 @@ const contactMessageSchema = new mongoose.Schema({
     type: String,
     enum: ['low', 'medium', 'high', 'urgent'],
     default: 'medium'
+  },
+  metadata: {
+    ip: String,
+    userAgent: String,
+    fingerprint: String,
+    submissionTime: Date,
+    formFillTime: Number,
+    verified: {
+      type: Boolean,
+      default: false
+    }
   }
 }, {
   timestamps: true
