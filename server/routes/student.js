@@ -9,6 +9,7 @@ const {
   updateStudentProfile,
   changePassword,
   uploadProfilePhoto,
+  enrollInCourse,
   getEnrolledCourses,
   getClassSchedule,
   getSubjects
@@ -34,6 +35,7 @@ router.post('/upload-photo',
 );
 
 // Course and schedule routes
+router.post('/enroll/:courseId', rateLimiters.general, enrollInCourse);
 router.get('/courses', rateLimiters.general, getEnrolledCourses);
 router.get('/schedule', rateLimiters.general, getClassSchedule);
 router.get('/subjects', rateLimiters.general, getSubjects);

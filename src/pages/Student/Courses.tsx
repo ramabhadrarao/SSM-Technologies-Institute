@@ -63,12 +63,12 @@ const StudentCourses: React.FC = () => {
     try {
       setLoading(true);
       const [coursesRes, subjectsRes, batchesRes] = await Promise.all([
-        apiClient.get('/student/courses'),
+        apiClient.getMyEnrollments(),
         apiClient.get('/student/subjects'),
         apiClient.get('/student/schedule')
       ]);
       
-      setCourses(coursesRes.data);
+      setCourses(coursesRes.data || coursesRes);
       setSubjects(subjectsRes.data);
       setBatches(batchesRes.data);
     } catch (error: any) {

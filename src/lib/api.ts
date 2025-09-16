@@ -871,17 +871,17 @@ class ApiClient {
 
   // ========== ENROLLMENT METHODS ==========
   async enrollInCourse(courseId: string) {
-    return this.request(`/enrollments/${courseId}`, {
+    return this.request(`/student/enroll/${courseId}`, {
       method: 'POST',
     });
   }
 
   async getMyEnrollments() {
-    return this.request('/enrollments/my');
+    return this.request('/student/courses');
   }
 
-  async updateEnrollmentProgress(enrollmentId: string, progress: number) {
-    return this.request(`/enrollments/${enrollmentId}/progress`, {
+  async updateEnrollmentProgress(courseId: string, progress: number) {
+    return this.request(`/student/courses/${courseId}/progress`, {
       method: 'PUT',
       body: JSON.stringify({ progress }),
     });

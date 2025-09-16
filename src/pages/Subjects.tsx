@@ -1,6 +1,6 @@
 // src/pages/Subjects.tsx
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   BookOpen, 
   Clock, 
@@ -20,10 +20,15 @@ import { apiClient } from '../lib/api';
 import { Subject } from '../types';
 import Card from '../components/UI/Card';
 import LoadingSpinner from '../components/UI/LoadingSpinner';
+import { useAuth } from '../contexts/AuthContext';
+import toast from 'react-hot-toast';
 
 const Subjects: React.FC = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
+  const [enrolling, setEnrolling] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [expandedSubject, setExpandedSubject] = useState<string | null>(null);
@@ -48,6 +53,33 @@ const Subjects: React.FC = () => {
       setSubjects([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEnrollSubject = async (subjectId: string, subject: Subject) => {
+    if (!user) {
+      toast.error('Please login to enroll in this subject');
+      navigate('/auth/login');
+      return;
+    }
+
+    // If subject has a course reference, enroll in the course instead
+    if (subject.course) {
+      try {
+        setEnrolling(subjectId);
+        await apiClient.enrollInCourse(subject.course);
+        toast.success(`Successfully enrolled in the course containing ${subject.name}!`);
+        navigate('/student/courses');
+      } catch (error: any) {
+        console.error('Error enrolling in course:', error);
+        toast.error(error.message || 'Failed to enroll in course');
+      } finally {
+        setEnrolling(null);
+      }
+    } else {
+      // For standalone subjects, show a message that they need to enroll in a course
+      toast.info('This subject is part of a course. Please browse our courses to enroll.');
+      navigate('/courses');
     }
   };
 
@@ -340,12 +372,13 @@ const Subjects: React.FC = () => {
                           }`} 
                         />
                       </button>
-                      <Link
-                        to="/register"
-                        className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-blue-700 hover:to-cyan-700 transition-all duration-200"
+                      <button
+                        onClick={() => handleEnrollSubject(subject._id, subject)}
+                        disabled={enrolling === subject._id}
+                        className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-blue-700 hover:to-cyan-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Enroll Now
-                      </Link>
+                        {enrolling === subject._id ? 'Enrolling...' : 'Enroll Now'}
+                      </button>
                     </div>
                   </div>
                 </Card>

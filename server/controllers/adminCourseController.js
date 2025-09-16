@@ -45,8 +45,14 @@ const getAdminCourses = async (req, res) => {
     // Execute query with pagination
     const courses = await Course.find(query)
       .populate('subjects', 'name description')
-      .populate('instructor', 'user designation experience')
-      .populate('instructor.user', 'firstName lastName email')
+      .populate({
+        path: 'instructor',
+        select: 'user designation experience',
+        populate: {
+          path: 'user',
+          select: 'firstName lastName email'
+        }
+      })
       .sort(sort)
       .limit(limit * 1)
       .skip((page - 1) * limit)
@@ -243,11 +249,15 @@ const updateAdminCourse = async (req, res) => {
     if (description) course.description = description;
     if (fees !== undefined) course.fees = parseFloat(fees);
     if (duration) course.duration = duration;
-    if (structure) course.structure = JSON.parse(structure);
-    if (subjects) course.subjects = JSON.parse(subjects);
+    if (structure) {
+      course.structure = typeof structure === 'string' ? JSON.parse(structure) : structure;
+    }
+    if (subjects) {
+      course.subjects = typeof subjects === 'string' ? JSON.parse(subjects) : subjects;
+    }
     if (instructor) course.instructor = instructor;
     if (videoUrl !== undefined) course.videoUrl = videoUrl || null;
-    if (typeof isActive === 'boolean') course.isActive = isActive;
+    if (isActive !== undefined) course.isActive = isActive === 'true' || isActive === true;
 
     // Handle image upload
     if (req.files && req.files.image) {
@@ -263,8 +273,14 @@ const updateAdminCourse = async (req, res) => {
     // Populate the response
     const updatedCourse = await Course.findById(id)
       .populate('subjects', 'name description')
-      .populate('instructor', 'user designation')
-      .populate('instructor.user', 'firstName lastName');
+      .populate({
+        path: 'instructor',
+        select: 'user designation experience',
+        populate: {
+          path: 'user',
+          select: 'firstName lastName email'
+        }
+      });
 
     res.json({
       success: true,
@@ -496,6 +512,128 @@ const getAvailableInstructors = async (req, res) => {
   }
 };
 
+// Get enrolled students for a course
+const getCourseEnrollments = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const { page = 1, limit = 10, search, status } = req.query;
+
+    // Build query for students enrolled in this course
+    const matchQuery = {
+      'enrolledCourses.course': courseId
+    };
+
+    if (status && status !== 'all') {
+      matchQuery['enrolledCourses.status'] = status;
+    }
+
+    // Build aggregation pipeline
+    const pipeline = [
+      { $match: matchQuery },
+      { $unwind: '$enrolledCourses' },
+      { $match: { 'enrolledCourses.course': courseId } },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'user',
+          foreignField: '_id',
+          as: 'userInfo'
+        }
+      },
+      { $unwind: '$userInfo' },
+      {
+        $lookup: {
+          from: 'courses',
+          localField: 'enrolledCourses.course',
+          foreignField: '_id',
+          as: 'courseInfo'
+        }
+      },
+      { $unwind: '$courseInfo' }
+    ];
+
+    // Add search filter if provided
+    if (search) {
+      pipeline.push({
+        $match: {
+          $or: [
+            { 'userInfo.firstName': { $regex: search, $options: 'i' } },
+            { 'userInfo.lastName': { $regex: search, $options: 'i' } },
+            { 'userInfo.email': { $regex: search, $options: 'i' } }
+          ]
+        }
+      });
+    }
+
+    // Add status filter if provided
+    if (status && status !== 'all') {
+      pipeline.push({
+        $match: { 'enrolledCourses.status': status }
+      });
+    }
+
+    // Add projection
+    pipeline.push({
+      $project: {
+        _id: 1,
+        student: {
+          _id: '$_id',
+          name: { $concat: ['$userInfo.firstName', ' ', '$userInfo.lastName'] },
+          email: '$userInfo.email',
+          phone: '$userInfo.phone',
+          profilePhoto: '$profilePhoto'
+        },
+        enrollment: {
+          enrolledAt: '$enrolledCourses.enrolledAt',
+          status: '$enrolledCourses.status',
+          progress: '$enrolledCourses.progress'
+        },
+        course: {
+          name: '$courseInfo.name',
+          fees: '$courseInfo.fees'
+        }
+      }
+    });
+
+    // Add sorting
+    pipeline.push({ $sort: { 'enrollment.enrolledAt': -1 } });
+
+    // Execute aggregation with pagination
+    const [enrollments, totalCount] = await Promise.all([
+      Student.aggregate([
+        ...pipeline,
+        { $skip: (page - 1) * limit },
+        { $limit: parseInt(limit) }
+      ]),
+      Student.aggregate([
+        ...pipeline,
+        { $count: 'total' }
+      ])
+    ]);
+
+    const total = totalCount[0]?.total || 0;
+
+    res.json({
+      success: true,
+      data: {
+        enrollments,
+        pagination: {
+          current: parseInt(page),
+          pages: Math.ceil(total / limit),
+          total,
+          limit: parseInt(limit)
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get course enrollments error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get course enrollments'
+    });
+  }
+};
+
 module.exports = {
   getAdminCourses,
   getAdminCourse,
@@ -504,5 +642,6 @@ module.exports = {
   deleteAdminCourse,
   bulkUpdateCourses,
   getCourseStats,
-  getAvailableInstructors
+  getAvailableInstructors,
+  getCourseEnrollments
 };

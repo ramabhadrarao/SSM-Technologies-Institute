@@ -204,6 +204,82 @@ const uploadProfilePhoto = async (req, res) => {
   }
 };
 
+// Enroll in course
+const enrollInCourse = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { courseId } = req.params;
+
+    // Find student
+    const student = await Student.findOne({ user: userId });
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: 'Student profile not found'
+      });
+    }
+
+    // Find course
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: 'Course not found'
+      });
+    }
+
+    if (!course.isActive) {
+      return res.status(400).json({
+        success: false,
+        message: 'Course is not available for enrollment'
+      });
+    }
+
+    // Check if already enrolled
+    const isAlreadyEnrolled = student.enrolledCourses.some(
+      enrollment => enrollment.course.toString() === courseId
+    );
+
+    if (isAlreadyEnrolled) {
+      return res.status(400).json({
+        success: false,
+        message: 'You are already enrolled in this course'
+      });
+    }
+
+    // Add enrollment
+    student.enrolledCourses.push({
+      course: courseId,
+      enrolledAt: new Date(),
+      status: 'active',
+      progress: 0
+    });
+
+    await student.save();
+
+    // Update course enrollment count
+    await Course.findByIdAndUpdate(courseId, {
+      $inc: { enrollmentCount: 1 }
+    });
+
+    res.json({
+      success: true,
+      message: 'Successfully enrolled in course',
+      data: {
+        courseId,
+        courseName: course.name,
+        enrolledAt: new Date()
+      }
+    });
+  } catch (error) {
+    console.error('Enroll in course error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to enroll in course'
+    });
+  }
+};
+
 // Get enrolled courses
 const getEnrolledCourses = async (req, res) => {
   try {
@@ -372,6 +448,7 @@ module.exports = {
   updateStudentProfile,
   changePassword,
   uploadProfilePhoto,
+  enrollInCourse,
   getEnrolledCourses,
   getClassSchedule,
   getSubjects

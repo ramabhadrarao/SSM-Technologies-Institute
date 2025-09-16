@@ -26,7 +26,8 @@ const {
   deleteAdminCourse,
   bulkUpdateCourses,
   getCourseStats,
-  getAvailableInstructors
+  getAvailableInstructors,
+  getCourseEnrollments
 } = require('../controllers/adminCourseController');
 
 const {
@@ -113,6 +114,7 @@ router.patch('/users/bulk-update', rateLimiters.general, bulkUpdateUsers);
 // ========== COURSE MANAGEMENT ROUTES ==========
 router.get('/courses/stats', rateLimiters.general, getCourseStats);
 router.get('/courses/instructors', rateLimiters.general, getAvailableInstructors);
+router.get('/courses/:id/enrollments', rateLimiters.general, getCourseEnrollments);
 router.get('/courses', rateLimiters.general, getAdminCourses);
 router.get('/courses/:id', rateLimiters.general, getAdminCourse);
 router.post('/courses', 

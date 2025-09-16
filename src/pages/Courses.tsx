@@ -1,15 +1,20 @@
 // src/pages/Courses.tsx
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { BookOpen, Clock, Users, Star, Filter, Search, ArrowRight, IndianRupee } from 'lucide-react';
 import { apiClient } from '../lib/api';
 import { Course } from '../types';
 import Card from '../components/UI/Card';
 import LoadingSpinner from '../components/UI/LoadingSpinner';
+import { useAuth } from '../contexts/AuthContext';
+import toast from 'react-hot-toast';
 
 const Courses: React.FC = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [enrolling, setEnrolling] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('name');
@@ -33,6 +38,27 @@ const Courses: React.FC = () => {
       console.error('Error fetching courses:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEnroll = async (courseId: string) => {
+    if (!user) {
+      toast.error('Please login to enroll in this course');
+      navigate('/auth/login');
+      return;
+    }
+
+    try {
+      setEnrolling(courseId);
+      await apiClient.enrollInCourse(courseId);
+      toast.success('Successfully enrolled in the course!');
+      // Optionally redirect to student dashboard
+      navigate('/student/courses');
+    } catch (error: any) {
+      console.error('Error enrolling in course:', error);
+      toast.error(error.message || 'Failed to enroll in course');
+    } finally {
+      setEnrolling(null);
     }
   };
 
@@ -261,12 +287,13 @@ const Courses: React.FC = () => {
                         Learn More
                         <ArrowRight className="w-4 h-4 ml-1" />
                       </Link>
-                      <Link
-                        to="/register"
-                        className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-blue-700 hover:to-cyan-700 transition-all duration-200"
+                      <button
+                        onClick={() => handleEnroll(course._id)}
+                        disabled={enrolling === course._id}
+                        className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-blue-700 hover:to-cyan-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Enroll Now
-                      </Link>
+                        {enrolling === course._id ? 'Enrolling...' : 'Enroll Now'}
+                      </button>
                     </div>
                   </div>
                 </Card>
