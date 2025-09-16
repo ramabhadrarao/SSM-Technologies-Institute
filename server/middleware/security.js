@@ -13,9 +13,9 @@ const rateLimiters = {
   // Strict rate limiter for auth endpoints
   auth: new RateLimiterMemory({
     keyGenerator: (req) => req.ip,
-    points: 5, // 5 attempts
+    points: 50, // 50 attempts (increased for development)
     duration: 900, // 15 minutes
-    blockDuration: 900, // Block for 15 minutes
+    blockDuration: 300, // Block for 5 minutes (reduced for development)
   }),
 
   // File upload rate limiter

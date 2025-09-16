@@ -13,6 +13,8 @@ const subjectRoutes = require('./routes/subjects');
 const dashboardRoutes = require('./routes/dashboard');
 const adminRoutes = require('./routes/admin');
 const contactRoutes = require('./routes/contact'); // New public contact route
+const studentRoutes = require('./routes/student');
+const instructorRoutes = require('./routes/instructor');
 
 const app = express();
 
@@ -63,6 +65,8 @@ app.use('/api/subjects', subjectRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/contact', contactRoutes); // Public contact form
+app.use('/api/student', studentRoutes);
+app.use('/api/instructor', instructorRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

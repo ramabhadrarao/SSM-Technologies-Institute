@@ -9,11 +9,11 @@ const instructorSchema = new mongoose.Schema({
   },
   bio: {
     type: String,
-    required: true
+    default: ''
   },
   designation: {
     type: String,
-    required: true
+    default: ''
   },
   imageUrl: {
     type: String,
@@ -24,13 +24,25 @@ const instructorSchema = new mongoose.Schema({
     default: null
   },
   certificates: [{
-    name: String,
-    url: String,
-    issuedBy: String,
-    issuedDate: Date,
+    title: String,
+    institution: String,
+    year: Number,
+    description: String,
+    fileUrl: String,
     uploadedAt: {
       type: Date,
       default: Date.now
+    }
+  }],
+  workExperience: [{
+    company: String,
+    position: String,
+    startDate: Date,
+    endDate: Date,
+    description: String,
+    isCurrent: {
+      type: Boolean,
+      default: false
     }
   }],
   skills: [{

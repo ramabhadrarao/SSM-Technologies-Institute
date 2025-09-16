@@ -165,6 +165,7 @@ const createAdminCourse = async (req, res) => {
       structure, 
       subjects, 
       instructor,
+      videoUrl,
       isActive = true 
     } = req.body;
     
@@ -176,17 +177,13 @@ const createAdminCourse = async (req, res) => {
       structure: structure ? JSON.parse(structure) : [],
       subjects: subjects ? JSON.parse(subjects) : [],
       instructor: instructor || null,
+      videoUrl: videoUrl || null,
       isActive
     };
 
-    // Add file URLs if uploaded
-    if (req.files) {
-      if (req.files.image) {
-        courseData.imageUrl = req.files.image[0].path;
-      }
-      if (req.files.video) {
-        courseData.videoUrl = req.files.video[0].path;
-      }
+    // Add image URL if uploaded
+    if (req.files && req.files.image) {
+      courseData.imageUrl = req.files.image[0].path;
     }
 
     const course = new Course(courseData);
@@ -229,6 +226,7 @@ const updateAdminCourse = async (req, res) => {
       structure, 
       subjects, 
       instructor,
+      videoUrl,
       isActive 
     } = req.body;
     
@@ -248,24 +246,16 @@ const updateAdminCourse = async (req, res) => {
     if (structure) course.structure = JSON.parse(structure);
     if (subjects) course.subjects = JSON.parse(subjects);
     if (instructor) course.instructor = instructor;
+    if (videoUrl !== undefined) course.videoUrl = videoUrl || null;
     if (typeof isActive === 'boolean') course.isActive = isActive;
 
-    // Handle file uploads
-    if (req.files) {
-      if (req.files.image) {
-        // Delete old image
-        if (course.imageUrl) {
-          deleteFile(course.imageUrl);
-        }
-        course.imageUrl = req.files.image[0].path;
+    // Handle image upload
+    if (req.files && req.files.image) {
+      // Delete old image
+      if (course.imageUrl) {
+        deleteFile(course.imageUrl);
       }
-      if (req.files.video) {
-        // Delete old video
-        if (course.videoUrl) {
-          deleteFile(course.videoUrl);
-        }
-        course.videoUrl = req.files.video[0].path;
-      }
+      course.imageUrl = req.files.image[0].path;
     }
 
     await course.save();
@@ -282,7 +272,7 @@ const updateAdminCourse = async (req, res) => {
       data: {
         ...updatedCourse.toObject(),
         imageUrl: getFileUrl(updatedCourse.imageUrl),
-        videoUrl: getFileUrl(updatedCourse.videoUrl)
+        videoUrl: updatedCourse.videoUrl // Direct URL, no file processing needed
       }
     });
   } catch (error) {

@@ -24,8 +24,12 @@ import AdminSubjectsManagement from './pages/Admin/SubjectsManagement';
 import AdminMessagesManagement from './pages/Admin/MessagesManagement';
 import AdminReportsAnalytics from './pages/Admin/ReportsAnalytics';
 import AdminSystemSettings from './pages/Admin/SystemSettings';
+import Skills from './pages/Admin/Skills';
 import StudentDashboard from './pages/Student/Dashboard';
+import StudentProfile from './pages/Student/Profile';
+import StudentCourses from './pages/Student/Courses';
 import InstructorDashboard from './pages/Instructor/Dashboard';
+import InstructorProfile from './pages/Instructor/Profile';
 
 function App() {
   return (
@@ -50,6 +54,7 @@ function App() {
               <Route path="/admin/users" element={<AdminUsersManagement />} />
               <Route path="/admin/courses" element={<AdminCoursesManagement />} />
               <Route path="/admin/subjects" element={<AdminSubjectsManagement />} />
+              <Route path="/admin/skills" element={<Skills />} />
               <Route path="/admin/batches" element={<AdminBatchesManagement />} />
               <Route path="/admin/messages" element={<AdminMessagesManagement />} />
               <Route path="/admin/reports" element={<AdminReportsAnalytics />} />
@@ -57,7 +62,10 @@ function App() {
               
               {/* Student & Instructor Routes */}
               <Route path="/student/dashboard" element={<StudentDashboard />} />
+              <Route path="/student/profile" element={<StudentProfile />} />
+              <Route path="/student/courses" element={<StudentCourses />} />
               <Route path="/instructor/dashboard" element={<InstructorDashboard />} />
+              <Route path="/instructor/profile" element={<InstructorProfile />} />
             </Routes>
           </main>
           <Footer />

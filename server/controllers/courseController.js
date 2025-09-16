@@ -73,7 +73,18 @@ const getCourse = async (req, res) => {
     const { id } = req.params;
     
     const course = await Course.findOne({ _id: id, isActive: true })
-      .populate('subjects', 'name description imageUrl')
+      .populate({
+        path: 'subjects',
+        select: 'name description imageUrl instructor',
+        populate: {
+          path: 'instructor',
+          select: 'user designation experience rating',
+          populate: {
+            path: 'user',
+            select: 'firstName lastName email'
+          }
+        }
+      })
       .populate('instructor', 'user bio designation imageUrl')
       .populate('reviews.student', 'user')
       .lean();
@@ -89,7 +100,7 @@ const getCourse = async (req, res) => {
     const courseWithUrls = {
       ...course,
       imageUrl: getFileUrl(course.imageUrl),
-      videoUrl: getFileUrl(course.videoUrl),
+      videoUrl: course.videoUrl, // Direct URL for YouTube links
       subjects: course.subjects.map(subject => ({
         ...subject,
         imageUrl: getFileUrl(subject.imageUrl)

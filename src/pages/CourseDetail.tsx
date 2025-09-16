@@ -1,6 +1,6 @@
 // src/pages/CourseDetail.tsx
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { 
   BookOpen, 
   Clock, 
@@ -18,11 +18,16 @@ import { Course } from '../types';
 import Card from '../components/UI/Card';
 import LoadingSpinner from '../components/UI/LoadingSpinner';
 import Button from '../components/UI/Button';
+import { useAuth } from '../contexts/AuthContext';
+import toast from 'react-hot-toast';
 
 const CourseDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
+  const [enrolling, setEnrolling] = useState(false);
   const [selectedTab, setSelectedTab] = useState('overview');
 
   useEffect(() => {
@@ -40,6 +45,32 @@ const CourseDetail: React.FC = () => {
       console.error('Error fetching course:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEnroll = async () => {
+    if (!user) {
+      toast.error('Please login to enroll in this course');
+      navigate('/auth/login');
+      return;
+    }
+
+    if (!id) {
+      toast.error('Course ID not found');
+      return;
+    }
+
+    try {
+      setEnrolling(true);
+      await apiClient.enrollInCourse(id);
+      toast.success('Successfully enrolled in the course!');
+      // Optionally redirect to student dashboard or course page
+      navigate('/student/courses');
+    } catch (error: any) {
+      console.error('Error enrolling in course:', error);
+      toast.error(error.message || 'Failed to enroll in course');
+    } finally {
+      setEnrolling(false);
     }
   };
 
@@ -72,6 +103,7 @@ const CourseDetail: React.FC = () => {
   const tabs = [
     { id: 'overview', label: 'Overview' },
     { id: 'curriculum', label: 'Curriculum' },
+    { id: 'video', label: 'Course Video' },
     { id: 'instructor', label: 'Instructor' },
     { id: 'reviews', label: 'Reviews' }
   ];
@@ -141,9 +173,14 @@ const CourseDetail: React.FC = () => {
 
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" className="flex-1 sm:flex-none">
+                <Button 
+                  size="lg" 
+                  className="flex-1 sm:flex-none"
+                  onClick={handleEnroll}
+                  disabled={enrolling}
+                >
                   <Award className="w-5 h-5 mr-2" />
-                  Enroll Now
+                  {enrolling ? 'Enrolling...' : 'Enroll Now'}
                 </Button>
                 <Button variant="outline" size="lg">
                   <PlayCircle className="w-5 h-5 mr-2" />
@@ -211,18 +248,106 @@ const CourseDetail: React.FC = () => {
                     <div className="space-y-4">
                       {course.subjects.map((subject, index) => (
                         <Card key={index} className="p-6">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h3 className="text-lg font-semibold text-gray-900">{subject}</h3>
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex-1">
+                              <h3 className="text-lg font-semibold text-gray-900">{typeof subject === 'string' ? subject : subject.name}</h3>
                               <p className="text-gray-600">Subject {index + 1}</p>
+                              {typeof subject === 'object' && subject.description && (
+                                <p className="text-sm text-gray-500 mt-1">{subject.description}</p>
+                              )}
                             </div>
                             <PlayCircle className="w-6 h-6 text-blue-600" />
                           </div>
+                          
+                          {/* Instructor Assignment Section */}
+                          {typeof subject === 'object' && subject.instructor ? (
+                            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                  <Users className="w-4 h-4 text-white" />
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium text-gray-900">
+                                    {subject.instructor.user ? 
+                                      `${subject.instructor.user.firstName} ${subject.instructor.user.lastName}` : 
+                                      'Instructor Name'
+                                    }
+                                  </p>
+                                  <p className="text-xs text-gray-600">
+                                    {subject.instructor.designation || 'Subject Instructor'}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
+                                Assigned
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
+                                  <Users className="w-4 h-4 text-white" />
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium text-gray-500">No instructor assigned</p>
+                                  <p className="text-xs text-gray-400">Instructor will be assigned soon</p>
+                                </div>
+                              </div>
+                              <div className="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded-full">
+                                Pending
+                              </div>
+                            </div>
+                          )}
                         </Card>
                       ))}
                     </div>
                   ) : (
                     <p className="text-gray-600">Detailed curriculum will be available soon.</p>
+                  )}
+                </div>
+              )}
+
+              {selectedTab === 'video' && (
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-4">Course Video</h2>
+                  {course.videoUrl ? (
+                    <Card className="p-6">
+                      <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                        {course.videoUrl.includes('youtube.com') || course.videoUrl.includes('youtu.be') ? (
+                          <iframe
+                            src={course.videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
+                            title={`${course.name} - Course Video`}
+                            className="w-full h-full"
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        ) : (
+                          <video
+                            src={course.videoUrl}
+                            controls
+                            className="w-full h-full"
+                            poster={course.imageUrl}
+                          >
+                            Your browser does not support the video tag.
+                          </video>
+                        )}
+                      </div>
+                      <div className="mt-4">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Course Introduction</h3>
+                        <p className="text-gray-600">
+                          Watch this video to get an overview of what you'll learn in this course and how it will benefit your career.
+                        </p>
+                      </div>
+                    </Card>
+                  ) : (
+                    <Card className="p-6">
+                      <div className="text-center py-12">
+                        <PlayCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">No Video Available</h3>
+                        <p className="text-gray-600">Course video will be available soon.</p>
+                      </div>
+                    </Card>
                   )}
                 </div>
               )}
@@ -316,9 +441,14 @@ const CourseDetail: React.FC = () => {
               </div>
               
               <div className="mt-6 pt-6 border-t">
-                <Button className="w-full" size="lg">
+                <Button 
+                  className="w-full" 
+                  size="lg"
+                  onClick={handleEnroll}
+                  disabled={enrolling}
+                >
                   <Award className="w-5 h-5 mr-2" />
-                  Enroll Now
+                  {enrolling ? 'Enrolling...' : 'Enroll Now'}
                 </Button>
                 <p className="text-xs text-gray-500 mt-2 text-center">
                   30-day money-back guarantee

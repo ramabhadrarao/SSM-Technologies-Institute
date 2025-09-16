@@ -87,6 +87,15 @@ const {
   removeSubjectMaterial
 } = require('../controllers/adminSubjectController');
 
+const {
+  getSkills,
+  getSkill,
+  createSkill,
+  updateSkill,
+  deleteSkill,
+  getSkillStats
+} = require('../controllers/adminSkillController');
+
 // All routes require admin authentication
 router.use(auth);
 router.use(authorize('admin'));
@@ -152,6 +161,14 @@ router.post('/subjects/:id/materials',
   addSubjectMaterial
 );
 router.delete('/subjects/:id/materials/:materialId', rateLimiters.general, removeSubjectMaterial);
+
+// ========== SKILLS MANAGEMENT ROUTES ==========
+router.get('/skills/stats', rateLimiters.general, getSkillStats);
+router.get('/skills', rateLimiters.general, getSkills);
+router.get('/skills/:id', rateLimiters.general, getSkill);
+router.post('/skills', rateLimiters.general, createSkill);
+router.put('/skills/:id', rateLimiters.general, updateSkill);
+router.delete('/skills/:id', rateLimiters.general, deleteSkill);
 
 // ========== BATCH MANAGEMENT ROUTES ==========
 router.get('/batches/stats', rateLimiters.general, getBatchStats);

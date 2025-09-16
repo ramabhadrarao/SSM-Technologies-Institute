@@ -12,7 +12,8 @@ import {
   MessageSquare,
   BarChart3,
   ExternalLink,
-  ChevronRight
+  ChevronRight,
+  User
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { apiClient } from '../../lib/api';
@@ -198,6 +199,72 @@ const InstructorDashboard: React.FC = () => {
               </div>
             </Card>
           ))}
+        </div>
+
+        {/* Quick Actions */}
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Link
+              to="/instructor/profile"
+              className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow group"
+            >
+              <div className="flex items-center">
+                <div className="bg-blue-100 text-blue-600 p-2 rounded-lg group-hover:bg-blue-200 transition-colors">
+                  <User className="w-5 h-5" />
+                </div>
+                <div className="ml-3">
+                  <p className="font-medium text-gray-900">Profile</p>
+                  <p className="text-sm text-gray-600">Manage profile</p>
+                </div>
+              </div>
+            </Link>
+
+            <Link
+              to="/instructor/courses"
+              className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow group"
+            >
+              <div className="flex items-center">
+                <div className="bg-green-100 text-green-600 p-2 rounded-lg group-hover:bg-green-200 transition-colors">
+                  <BookOpen className="w-5 h-5" />
+                </div>
+                <div className="ml-3">
+                  <p className="font-medium text-gray-900">Courses</p>
+                  <p className="text-sm text-gray-600">Manage courses</p>
+                </div>
+              </div>
+            </Link>
+
+            <Link
+              to="/instructor/batches"
+              className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow group"
+            >
+              <div className="flex items-center">
+                <div className="bg-purple-100 text-purple-600 p-2 rounded-lg group-hover:bg-purple-200 transition-colors">
+                  <Users className="w-5 h-5" />
+                </div>
+                <div className="ml-3">
+                  <p className="font-medium text-gray-900">Batches</p>
+                  <p className="text-sm text-gray-600">Manage batches</p>
+                </div>
+              </div>
+            </Link>
+
+            <Link
+              to="/instructor/schedule"
+              className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow group"
+            >
+              <div className="flex items-center">
+                <div className="bg-orange-100 text-orange-600 p-2 rounded-lg group-hover:bg-orange-200 transition-colors">
+                  <Calendar className="w-5 h-5" />
+                </div>
+                <div className="ml-3">
+                  <p className="font-medium text-gray-900">Schedule</p>
+                  <p className="text-sm text-gray-600">View schedule</p>
+                </div>
+              </div>
+            </Link>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

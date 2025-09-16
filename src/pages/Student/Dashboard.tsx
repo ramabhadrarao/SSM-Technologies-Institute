@@ -13,7 +13,9 @@ import {
   CheckCircle,
   AlertCircle,
   Star,
-  ExternalLink
+  ExternalLink,
+  User,
+  Settings
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { apiClient } from '../../lib/api';
@@ -215,6 +217,61 @@ const StudentDashboard: React.FC = () => {
               </div>
             </Card>
           ))}
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Link to="/student/profile">
+            <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">My Profile</p>
+                  <p className="text-lg font-semibold text-gray-900">Manage Account</p>
+                </div>
+                <div className="bg-indigo-500 text-white p-3 rounded-lg">
+                  <User className="w-6 h-6" />
+                </div>
+              </div>
+            </Card>
+          </Link>
+          
+          <Link to="/student/courses">
+            <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">My Courses</p>
+                  <p className="text-lg font-semibold text-gray-900">View Details</p>
+                </div>
+                <div className="bg-blue-500 text-white p-3 rounded-lg">
+                  <BookOpen className="w-6 h-6" />
+                </div>
+              </div>
+            </Card>
+          </Link>
+          
+          <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Class Schedule</p>
+                <p className="text-lg font-semibold text-gray-900">View Timetable</p>
+              </div>
+              <div className="bg-green-500 text-white p-3 rounded-lg">
+                <Calendar className="w-6 h-6" />
+              </div>
+            </div>
+          </Card>
+          
+          <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Settings</p>
+                <p className="text-lg font-semibold text-gray-900">Preferences</p>
+              </div>
+              <div className="bg-gray-500 text-white p-3 rounded-lg">
+                <Settings className="w-6 h-6" />
+              </div>
+            </div>
+          </Card>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

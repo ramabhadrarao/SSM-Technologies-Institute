@@ -19,6 +19,11 @@ const subjectSchema = new mongoose.Schema({
     ref: 'Course',
     default: null
   },
+  instructor: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Instructor',
+    default: null
+  },
   syllabus: [{
     topic: {
       type: String,
@@ -50,6 +55,7 @@ const subjectSchema = new mongoose.Schema({
 // Indexes
 subjectSchema.index({ name: 1 });
 subjectSchema.index({ course: 1 });
+subjectSchema.index({ instructor: 1 });
 subjectSchema.index({ isActive: 1 });
 
 module.exports = mongoose.model('Subject', subjectSchema);

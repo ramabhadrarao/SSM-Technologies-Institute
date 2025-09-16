@@ -15,7 +15,8 @@ import {
   Settings,
   BarChart3,
   FileText,
-  IndianRupee
+  IndianRupee,
+  Wrench
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { apiClient } from '../../lib/api';
@@ -173,6 +174,13 @@ const AdminDashboard: React.FC = () => {
       icon: <FileText className="w-6 h-6" />,
       href: '/admin/subjects',
       color: 'bg-yellow-50 text-yellow-600'
+    },
+    {
+      title: 'Skills Management',
+      description: 'Manage skills for instructor selection',
+      icon: <Wrench className="w-6 h-6" />,
+      href: '/admin/skills',
+      color: 'bg-teal-50 text-teal-600'
     },
     {
       title: 'Batch Scheduling',

@@ -38,14 +38,16 @@ const Register: React.FC = () => {
     setLoading(true);
     try {
       const userData = {
-        first_name: data.firstName,
-        last_name: data.lastName,
+        email: data.email,
+        password: data.password,
+        firstName: data.firstName,
+        lastName: data.lastName,
         phone: data.phone,
         whatsapp: data.whatsapp || data.phone,
         role: data.role,
       };
 
-      const { error } = await signUp(data.email, data.password, userData);
+      const { error } = await signUp(userData);
       
       if (error) {
         toast.error(error.message);
@@ -89,7 +91,7 @@ const Register: React.FC = () => {
                     {...register('role', { required: 'Please select a role' })}
                     type="radio"
                     value="student"
-                    className="sr-only"
+                    className="peer sr-only"
                   />
                   <div className="border-2 border-gray-300 rounded-lg p-4 text-center hover:border-blue-500 peer-checked:border-blue-500 peer-checked:bg-blue-50 transition-colors">
                     <User className="h-8 w-8 mx-auto mb-2 text-blue-600" />
@@ -101,7 +103,7 @@ const Register: React.FC = () => {
                     {...register('role', { required: 'Please select a role' })}
                     type="radio"
                     value="instructor"
-                    className="sr-only"
+                    className="peer sr-only"
                   />
                   <div className="border-2 border-gray-300 rounded-lg p-4 text-center hover:border-blue-500 peer-checked:border-blue-500 peer-checked:bg-blue-50 transition-colors">
                     <UserCheck className="h-8 w-8 mx-auto mb-2 text-blue-600" />

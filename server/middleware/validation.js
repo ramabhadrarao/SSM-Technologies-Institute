@@ -21,8 +21,8 @@ const validate = (schema) => {
 const registerSchema = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().min(6).required(),
-  firstName: Joi.string().min(2).max(50).required(),
-  lastName: Joi.string().min(2).max(50).required(),
+  firstName: Joi.string().min(1).max(50).required(),
+  lastName: Joi.string().min(1).max(50).required(),
   phone: Joi.string().pattern(/^[+]?[\d\s-()]+$/).required(),
   whatsapp: Joi.string().pattern(/^[+]?[\d\s-()]+$/).optional(),
   role: Joi.string().valid('student', 'instructor').default('student')
@@ -34,8 +34,8 @@ const loginSchema = Joi.object({
 });
 
 const updateProfileSchema = Joi.object({
-  firstName: Joi.string().min(2).max(50).optional(),
-  lastName: Joi.string().min(2).max(50).optional(),
+  firstName: Joi.string().min(1).max(50).optional(),
+  lastName: Joi.string().min(1).max(50).optional(),
   phone: Joi.string().pattern(/^[+]?[\d\s-()]+$/).optional(),
   whatsapp: Joi.string().pattern(/^[+]?[\d\s-()]+$/).optional()
 });

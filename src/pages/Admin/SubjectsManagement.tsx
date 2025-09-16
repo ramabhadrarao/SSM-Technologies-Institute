@@ -41,6 +41,15 @@ interface Subject {
     fees: number;
     duration: string;
   };
+  instructor?: {
+    _id: string;
+    user: {
+      firstName: string;
+      lastName: string;
+      email: string;
+    };
+    designation: string;
+  };
   syllabus: Array<{
     topic: string;
     duration?: string;
@@ -63,6 +72,7 @@ interface SubjectFormData {
   name: string;
   description: string;
   course: string;
+  instructor: string;
   syllabus: Array<{
     topic: string;
     duration: string;
@@ -95,12 +105,14 @@ const AdminSubjectsManagement: React.FC = () => {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [subjectStats, setSubjectStats] = useState<any>(null);
   const [availableCourses, setAvailableCourses] = useState<any[]>([]);
+  const [availableInstructors, setAvailableInstructors] = useState<any[]>([]);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [materialFile, setMaterialFile] = useState<File | null>(null);
   const [subjectFormData, setSubjectFormData] = useState<SubjectFormData>({
     name: '',
     description: '',
     course: '',
+    instructor: '',
     syllabus: [],
     isActive: true
   });
@@ -119,6 +131,7 @@ const AdminSubjectsManagement: React.FC = () => {
     fetchSubjects();
     fetchSubjectStats();
     fetchAvailableCourses();
+    fetchAvailableInstructors();
   }, [currentPage, selectedCourse, selectedStatus, searchQuery]);
 
   const fetchSubjects = async () => {
@@ -164,6 +177,15 @@ const AdminSubjectsManagement: React.FC = () => {
     }
   };
 
+  const fetchAvailableInstructors = async () => {
+    try {
+      const response = await apiClient.getAvailableInstructors();
+      setAvailableInstructors(response.instructors || []);
+    } catch (error) {
+      console.error('Error fetching instructors:', error);
+    }
+  };
+
   const handleCreateSubject = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -173,6 +195,7 @@ const AdminSubjectsManagement: React.FC = () => {
       formData.append('name', subjectFormData.name);
       formData.append('description', subjectFormData.description);
       formData.append('course', subjectFormData.course);
+      formData.append('instructor', subjectFormData.instructor);
       formData.append('syllabus', JSON.stringify(subjectFormData.syllabus));
       formData.append('isActive', subjectFormData.isActive.toString());
       
@@ -204,6 +227,7 @@ const AdminSubjectsManagement: React.FC = () => {
       formData.append('name', subjectFormData.name);
       formData.append('description', subjectFormData.description);
       formData.append('course', subjectFormData.course);
+      formData.append('instructor', subjectFormData.instructor);
       formData.append('syllabus', JSON.stringify(subjectFormData.syllabus));
       formData.append('isActive', subjectFormData.isActive.toString());
       
@@ -303,6 +327,7 @@ const AdminSubjectsManagement: React.FC = () => {
       name: subject.name,
       description: subject.description,
       course: subject.course?._id || '',
+      instructor: subject.instructor?._id || '',
       syllabus: subject.syllabus || [],
       isActive: subject.isActive
     });
@@ -319,6 +344,7 @@ const AdminSubjectsManagement: React.FC = () => {
       name: '',
       description: '',
       course: '',
+      instructor: '',
       syllabus: [],
       isActive: true
     });
@@ -832,6 +858,37 @@ const AdminSubjectsManagement: React.FC = () => {
                 </div>
               </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Instructor
+                  </label>
+                  <select
+                    value={subjectFormData.instructor}
+                    onChange={(e) => setSubjectFormData({...subjectFormData, instructor: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">No Instructor Assigned</option>
+                    {availableInstructors.map(instructor => (
+                      <option key={instructor._id} value={instructor._id}>
+                        {instructor.user.firstName} {instructor.user.lastName} - {instructor.designation}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Subject Image
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Description *
@@ -843,18 +900,6 @@ const AdminSubjectsManagement: React.FC = () => {
                   onChange={(e) => setSubjectFormData({...subjectFormData, description: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Enter subject description"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Subject Image
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 

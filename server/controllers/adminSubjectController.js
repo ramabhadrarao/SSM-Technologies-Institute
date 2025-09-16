@@ -43,6 +43,14 @@ const getAdminSubjects = async (req, res) => {
     // Execute query with pagination
     const subjects = await Subject.find(query)
       .populate('course', 'name fees duration')
+      .populate({
+        path: 'instructor',
+        populate: {
+          path: 'user',
+          select: 'firstName lastName email'
+        },
+        select: 'designation'
+      })
       .sort(sort)
       .limit(limit * 1)
       .skip((page - 1) * limit)
@@ -125,6 +133,7 @@ const createAdminSubject = async (req, res) => {
       name, 
       description, 
       course, 
+      instructor,
       syllabus,
       isActive = true 
     } = req.body;
@@ -133,6 +142,7 @@ const createAdminSubject = async (req, res) => {
       name,
       description,
       course: course || null,
+      instructor: instructor || null,
       syllabus: syllabus ? JSON.parse(syllabus) : [],
       isActive,
       materials: []
@@ -148,7 +158,15 @@ const createAdminSubject = async (req, res) => {
 
     // Populate the response
     const populatedSubject = await Subject.findById(subject._id)
-      .populate('course', 'name description');
+      .populate('course', 'name description')
+      .populate({
+        path: 'instructor',
+        populate: {
+          path: 'user',
+          select: 'firstName lastName email'
+        },
+        select: 'designation'
+      });
 
     res.status(201).json({
       success: true,
@@ -176,6 +194,7 @@ const updateAdminSubject = async (req, res) => {
       name, 
       description, 
       course, 
+      instructor,
       syllabus,
       isActive 
     } = req.body;
@@ -192,6 +211,7 @@ const updateAdminSubject = async (req, res) => {
     if (name) subject.name = name;
     if (description) subject.description = description;
     if (course !== undefined) subject.course = course || null;
+    if (instructor !== undefined) subject.instructor = instructor || null;
     if (syllabus) subject.syllabus = JSON.parse(syllabus);
     if (typeof isActive === 'boolean') subject.isActive = isActive;
 
@@ -208,7 +228,15 @@ const updateAdminSubject = async (req, res) => {
 
     // Populate the response
     const updatedSubject = await Subject.findById(id)
-      .populate('course', 'name description');
+      .populate('course', 'name description')
+      .populate({
+        path: 'instructor',
+        populate: {
+          path: 'user',
+          select: 'firstName lastName email'
+        },
+        select: 'designation'
+      });
 
     res.json({
       success: true,
