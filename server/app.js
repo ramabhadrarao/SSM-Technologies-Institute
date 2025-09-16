@@ -42,7 +42,8 @@ if (process.env.NODE_ENV === 'development') {
 app.use(requestLogger);
 
 // Static file serving
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+// app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
